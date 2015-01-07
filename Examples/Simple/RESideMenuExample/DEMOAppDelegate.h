@@ -7,9 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "RESideMenu.h"
+#import "RESideMenuController.h"
 
-@interface DEMOAppDelegate : UIResponder <UIApplicationDelegate, RESideMenuDelegate>
+@interface DEMOAppDelegate : UIResponder <UIApplicationDelegate, RESideMenuControllerDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 

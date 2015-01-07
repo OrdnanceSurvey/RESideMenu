@@ -18,7 +18,7 @@
 		3032B958180736E200064F85 /* DEMOSecondViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3032B957180736E200064F85 /* DEMOSecondViewController.m */; };
 		3032B95E1807372B00064F85 /* DEMOLeftMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3032B95D1807372B00064F85 /* DEMOLeftMenuViewController.m */; };
 		3076CE171809B5EF00527E6C /* RECommonFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE121809B5EF00527E6C /* RECommonFunctions.m */; };
-		3076CE181809B5EF00527E6C /* RESideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE141809B5EF00527E6C /* RESideMenu.m */; };
+		3076CE181809B5EF00527E6C /* RESideMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE141809B5EF00527E6C /* RESideMenuController.m */; };
 		3076CE191809B5EF00527E6C /* UIViewController+RESideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE161809B5EF00527E6C /* UIViewController+RESideMenu.m */; };
 		30FE3D1F18AB3B6A003F59ED /* DEMORightMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 30FE3D1E18AB3B6A003F59ED /* DEMORightMenuViewController.m */; };
 /* End PBXBuildFile section */
@@ -44,8 +44,8 @@
 		3032B95D1807372B00064F85 /* DEMOLeftMenuViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DEMOLeftMenuViewController.m; sourceTree = "<group>"; };
 		3076CE111809B5EF00527E6C /* RECommonFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RECommonFunctions.h; sourceTree = "<group>"; };
 		3076CE121809B5EF00527E6C /* RECommonFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RECommonFunctions.m; sourceTree = "<group>"; };
-		3076CE131809B5EF00527E6C /* RESideMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RESideMenu.h; sourceTree = "<group>"; };
-		3076CE141809B5EF00527E6C /* RESideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RESideMenu.m; sourceTree = "<group>"; };
+		3076CE131809B5EF00527E6C /* RESideMenuController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RESideMenuController.h; sourceTree = "<group>"; };
+		3076CE141809B5EF00527E6C /* RESideMenuController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RESideMenuController.m; sourceTree = "<group>"; };
 		3076CE151809B5EF00527E6C /* UIViewController+RESideMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+RESideMenu.h"; sourceTree = "<group>"; };
 		3076CE161809B5EF00527E6C /* UIViewController+RESideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+RESideMenu.m"; sourceTree = "<group>"; };
 		30FE3D1D18AB3B6A003F59ED /* DEMORightMenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DEMORightMenuViewController.h; sourceTree = "<group>"; };
@@ -138,8 +138,8 @@
 			children = (
 				3076CE111809B5EF00527E6C /* RECommonFunctions.h */,
 				3076CE121809B5EF00527E6C /* RECommonFunctions.m */,
-				3076CE131809B5EF00527E6C /* RESideMenu.h */,
-				3076CE141809B5EF00527E6C /* RESideMenu.m */,
+				3076CE131809B5EF00527E6C /* RESideMenuController.h */,
+				3076CE141809B5EF00527E6C /* RESideMenuController.m */,
 				3076CE151809B5EF00527E6C /* UIViewController+RESideMenu.h */,
 				3076CE161809B5EF00527E6C /* UIViewController+RESideMenu.m */,
 			);
@@ -211,7 +211,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3076CE181809B5EF00527E6C /* RESideMenu.m in Sources */,
+				3076CE181809B5EF00527E6C /* RESideMenuController.m in Sources */,
 				3032B954180736C900064F85 /* DEMOFirstViewController.m in Sources */,
 				3032B91F1807338200064F85 /* main.m in Sources */,
 				3032B95E1807372B00064F85 /* DEMOLeftMenuViewController.m in Sources */,

@@ -30,9 +30,9 @@
 #define IBInspectable
 #endif
 
-@protocol RESideMenuDelegate;
+@protocol RESideMenuControllerDelegate;
 
-@interface RESideMenu : UIViewController <UIGestureRecognizerDelegate>
+@interface RESideMenuController : UIViewController <UIGestureRecognizerDelegate>
 
 #if __IPHONE_8_0
 @property (strong, readwrite, nonatomic) IBInspectable NSString *contentViewStoryboardID;
@@ -43,7 +43,7 @@
 @property (strong, readwrite, nonatomic) UIViewController *contentViewController;
 @property (strong, readwrite, nonatomic) UIViewController *leftMenuViewController;
 @property (strong, readwrite, nonatomic) UIViewController *rightMenuViewController;
-@property (weak, readwrite, nonatomic) id<RESideMenuDelegate> delegate;
+@property (weak, readwrite, nonatomic) id<RESideMenuControllerDelegate> delegate;
 
 @property (assign, readwrite, nonatomic) NSTimeInterval animationDuration;
 @property (strong, readwrite, nonatomic) UIImage *backgroundImage;
@@ -84,13 +84,13 @@
 
 @end
 
-@protocol RESideMenuDelegate <NSObject>
+@protocol RESideMenuControllerDelegate <NSObject>
 
 @optional
-- (void)sideMenu:(RESideMenu *)sideMenu didRecognizePanGesture:(UIPanGestureRecognizer *)recognizer;
-- (void)sideMenu:(RESideMenu *)sideMenu willShowMenuViewController:(UIViewController *)menuViewController;
-- (void)sideMenu:(RESideMenu *)sideMenu didShowMenuViewController:(UIViewController *)menuViewController;
-- (void)sideMenu:(RESideMenu *)sideMenu willHideMenuViewController:(UIViewController *)menuViewController;
-- (void)sideMenu:(RESideMenu *)sideMenu didHideMenuViewController:(UIViewController *)menuViewController;
+- (void)sideMenu:(RESideMenuController *)sideMenu didRecognizePanGesture:(UIPanGestureRecognizer *)recognizer;
+- (void)sideMenu:(RESideMenuController *)sideMenu willShowMenuViewController:(UIViewController *)menuViewController;
+- (void)sideMenu:(RESideMenuController *)sideMenu didShowMenuViewController:(UIViewController *)menuViewController;
+- (void)sideMenu:(RESideMenuController *)sideMenu willHideMenuViewController:(UIViewController *)menuViewController;
+- (void)sideMenu:(RESideMenuController *)sideMenu didHideMenuViewController:(UIViewController *)menuViewController;
 
 @end

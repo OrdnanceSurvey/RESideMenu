@@ -20,7 +20,7 @@
 		3076CE041809B59E00527E6C /* DEMORootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CDFE1809B59E00527E6C /* DEMORootViewController.m */; };
 		3076CE051809B59E00527E6C /* DEMOSecondViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE001809B59E00527E6C /* DEMOSecondViewController.m */; };
 		3076CE0D1809B5C500527E6C /* RECommonFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE081809B5C400527E6C /* RECommonFunctions.m */; };
-		3076CE0E1809B5C500527E6C /* RESideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE0A1809B5C500527E6C /* RESideMenu.m */; };
+		3076CE0E1809B5C500527E6C /* RESideMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE0A1809B5C500527E6C /* RESideMenuController.m */; };
 		3076CE0F1809B5C500527E6C /* UIViewController+RESideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE0C1809B5C500527E6C /* UIViewController+RESideMenu.m */; };
 		30DF13B218DE1B0C0018463C /* DEMORightMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 30DF13B118DE1B0C0018463C /* DEMORightMenuViewController.m */; };
 /* End PBXBuildFile section */
@@ -49,8 +49,8 @@
 		3076CE001809B59E00527E6C /* DEMOSecondViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DEMOSecondViewController.m; sourceTree = "<group>"; };
 		3076CE071809B5C400527E6C /* RECommonFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RECommonFunctions.h; sourceTree = "<group>"; };
 		3076CE081809B5C400527E6C /* RECommonFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RECommonFunctions.m; sourceTree = "<group>"; };
-		3076CE091809B5C400527E6C /* RESideMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RESideMenu.h; sourceTree = "<group>"; };
-		3076CE0A1809B5C500527E6C /* RESideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RESideMenu.m; sourceTree = "<group>"; };
+		3076CE091809B5C400527E6C /* RESideMenuController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RESideMenuController.h; sourceTree = "<group>"; };
+		3076CE0A1809B5C500527E6C /* RESideMenuController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RESideMenuController.m; sourceTree = "<group>"; };
 		3076CE0B1809B5C500527E6C /* UIViewController+RESideMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+RESideMenu.h"; sourceTree = "<group>"; };
 		3076CE0C1809B5C500527E6C /* UIViewController+RESideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+RESideMenu.m"; sourceTree = "<group>"; };
 		30DF13B018DE1B0C0018463C /* DEMORightMenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DEMORightMenuViewController.h; sourceTree = "<group>"; };
@@ -146,8 +146,8 @@
 			children = (
 				3076CE071809B5C400527E6C /* RECommonFunctions.h */,
 				3076CE081809B5C400527E6C /* RECommonFunctions.m */,
-				3076CE091809B5C400527E6C /* RESideMenu.h */,
-				3076CE0A1809B5C500527E6C /* RESideMenu.m */,
+				3076CE091809B5C400527E6C /* RESideMenuController.h */,
+				3076CE0A1809B5C500527E6C /* RESideMenuController.m */,
 				3076CE0B1809B5C500527E6C /* UIViewController+RESideMenu.h */,
 				3076CE0C1809B5C500527E6C /* UIViewController+RESideMenu.m */,
 			);
@@ -229,7 +229,7 @@
 				30DF13B218DE1B0C0018463C /* DEMORightMenuViewController.m in Sources */,
 				3076CE041809B59E00527E6C /* DEMORootViewController.m in Sources */,
 				3076CE0F1809B5C500527E6C /* UIViewController+RESideMenu.m in Sources */,
-				3076CE0E1809B5C500527E6C /* RESideMenu.m in Sources */,
+				3076CE0E1809B5C500527E6C /* RESideMenuController.m in Sources */,
 				3076CE0D1809B5C500527E6C /* RECommonFunctions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

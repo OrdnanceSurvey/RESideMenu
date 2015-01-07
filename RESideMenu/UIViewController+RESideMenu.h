@@ -25,11 +25,11 @@
 
 #import <UIKit/UIKit.h>
 
-@class RESideMenu;
+@class RESideMenuController;
 
 @interface UIViewController (RESideMenu)
 
-@property (strong, readonly, nonatomic) RESideMenu *sideMenuViewController;
+@property (strong, readonly, nonatomic) RESideMenuController *sideMenuViewController;
 
 // IB Action Helper methods
 

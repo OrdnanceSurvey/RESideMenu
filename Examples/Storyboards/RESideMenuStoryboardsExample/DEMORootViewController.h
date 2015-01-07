@@ -7,8 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "RESideMenu.h"
+#import "RESideMenuController.h"
 
-@interface DEMORootViewController : RESideMenu <RESideMenuDelegate>
+@interface DEMORootViewController : RESideMenuController <RESideMenuControllerDelegate>
 
 @end

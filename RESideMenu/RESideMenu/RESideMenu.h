@@ -1,5 +1,5 @@
 //
-// UIViewController+RESideMenu.m
+// RECommonFunctions.h
 // RESideMenu
 //
 // Copyright (c) 2013-2014 Roman Efimov (https://github.com/romaonthego)
@@ -23,37 +23,15 @@
 // THE SOFTWARE.
 //
 
-#import "UIViewController+RESideMenu.h"
+#import <UIKit/UIKit.h>
+
+//! Project version number for RESideMenu.
+FOUNDATION_EXPORT double RESideMenuVersionNumber;
+
+//! Project version string for RESideMenu.
+FOUNDATION_EXPORT const unsigned char RESideMenuVersionString[];
+
 #import "RESideMenuController.h"
+#import "UIViewController+RESideMenu.h"
 
-@implementation UIViewController (RESideMenu)
 
-- (RESideMenuController *)sideMenuViewController
-{
-    UIViewController *iter = self.parentViewController;
-    while (iter) {
-        if ([iter isKindOfClass:[RESideMenuController class]]) {
-            return (RESideMenuController *)iter;
-        } else if (iter.parentViewController && iter.parentViewController != iter) {
-            iter = iter.parentViewController;
-        } else {
-            iter = nil;
-        }
-    }
-    return nil;
-}
-
-#pragma mark -
-#pragma mark IB Action Helper methods
-
-- (IBAction)presentLeftMenuViewController:(id)sender
-{
-    [self.sideMenuViewController presentLeftMenuViewController];
-}
-
-- (IBAction)presentRightMenuViewController:(id)sender
-{
-    [self.sideMenuViewController presentRightMenuViewController];
-}
-
-@end

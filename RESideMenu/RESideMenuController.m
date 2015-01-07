@@ -23,11 +23,11 @@
 // THE SOFTWARE.
 //
 
-#import "RESideMenu.h"
+#import "RESideMenuController.h"
 #import "UIViewController+RESideMenu.h"
 #import "RECommonFunctions.h"
 
-@interface RESideMenu ()
+@interface RESideMenuController ()
 
 @property (strong, readwrite, nonatomic) UIImageView *backgroundImageView;
 @property (assign, readwrite, nonatomic) BOOL visible;
@@ -41,7 +41,7 @@
 
 @end
 
-@implementation RESideMenu
+@implementation RESideMenuController
 
 #pragma mark -
 #pragma mark Instance lifecycle
@@ -264,7 +264,7 @@
     if (self.scaleBackgroundImageView)
         self.backgroundImageView.transform = CGAffineTransformMakeScale(1.7f, 1.7f);
     
-    if ([self.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willShowMenuViewController:)]) {
+    if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willShowMenuViewController:)]) {
         [self.delegate sideMenu:self willShowMenuViewController:menuViewController];
     }
 }
@@ -303,7 +303,7 @@
     } completion:^(BOOL finished) {
         [self addContentViewControllerMotionEffects];
         
-        if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
+        if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
             [self.delegate sideMenu:self didShowMenuViewController:self.leftMenuViewController];
         }
         
@@ -342,7 +342,7 @@
             self.backgroundImageView.transform = CGAffineTransformIdentity;
         
     } completion:^(BOOL finished) {
-        if (!self.rightMenuVisible && [self.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
+        if (!self.rightMenuVisible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
             [self.delegate sideMenu:self didShowMenuViewController:self.rightMenuViewController];
         }
         
@@ -365,7 +365,7 @@
 - (void)hideMenuViewControllerAnimated:(BOOL)animated
 {
     BOOL rightMenuVisible = self.rightMenuVisible;
-    if ([self.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willHideMenuViewController:)]) {
+    if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willHideMenuViewController:)]) {
         [self.delegate sideMenu:self willHideMenuViewController:rightMenuVisible ? self.rightMenuViewController : self.leftMenuViewController];
     }
     
@@ -404,7 +404,7 @@
         if (!strongSelf) {
             return;
         }
-        if (!strongSelf.visible && [strongSelf.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [strongSelf.delegate respondsToSelector:@selector(sideMenu:didHideMenuViewController:)]) {
+        if (!strongSelf.visible && [strongSelf.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [strongSelf.delegate respondsToSelector:@selector(sideMenu:didHideMenuViewController:)]) {
             [strongSelf.delegate sideMenu:strongSelf didHideMenuViewController:rightMenuVisible ? strongSelf.rightMenuViewController : strongSelf.leftMenuViewController];
         }
     };
@@ -545,7 +545,7 @@
 
 - (void)panGestureRecognized:(UIPanGestureRecognizer *)recognizer
 {
-    if ([self.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didRecognizePanGesture:)])
+    if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didRecognizePanGesture:)])
         [self.delegate sideMenu:self didRecognizePanGesture:recognizer];
     
     if (!self.panGestureEnabled) {
@@ -626,12 +626,12 @@
         
         if (!self.didNotifyDelegate) {
             if (point.x > 0) {
-                if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willShowMenuViewController:)]) {
+                if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willShowMenuViewController:)]) {
                     [self.delegate sideMenu:self willShowMenuViewController:self.leftMenuViewController];
                 }
             }
             if (point.x < 0) {
-                if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willShowMenuViewController:)]) {
+                if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willShowMenuViewController:)]) {
                     [self.delegate sideMenu:self willShowMenuViewController:self.rightMenuViewController];
                 }
             }
