@@ -6,6 +6,21 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		4545152E1A5D33AE0002AF67 /* Universal Framework */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 4545152F1A5D33AE0002AF67 /* Build configuration list for PBXAggregateTarget "Universal Framework" */;
+			buildPhases = (
+				454515321A5D33BB0002AF67 /* ShellScript */,
+			);
+			dependencies = (
+				454515341A5D33CB0002AF67 /* PBXTargetDependency */,
+			);
+			name = "Universal Framework";
+			productName = "Universal Framework";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		4545150C1A5D2F440002AF67 /* RESideMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = 4545150B1A5D2F440002AF67 /* RESideMenu.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		454515121A5D2F440002AF67 /* RESideMenu.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 454515061A5D2F440002AF67 /* RESideMenu.framework */; };
@@ -20,6 +35,13 @@
 
 /* Begin PBXContainerItemProxy section */
 		454515131A5D2F440002AF67 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 454514FD1A5D2F440002AF67 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 454515051A5D2F440002AF67;
+			remoteInfo = RESideMenu;
+		};
+		454515331A5D33CB0002AF67 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 454514FD1A5D2F440002AF67 /* Project object */;
 			proxyType = 1;
@@ -188,6 +210,9 @@
 					454515101A5D2F440002AF67 = {
 						CreatedOnToolsVersion = 6.1.1;
 					};
+					4545152E1A5D33AE0002AF67 = {
+						CreatedOnToolsVersion = 6.1.1;
+					};
 				};
 			};
 			buildConfigurationList = 454515001A5D2F440002AF67 /* Build configuration list for PBXProject "RESideMenu" */;
@@ -204,6 +229,7 @@
 			targets = (
 				454515051A5D2F440002AF67 /* RESideMenu */,
 				454515101A5D2F440002AF67 /* RESideMenuTests */,
+				4545152E1A5D33AE0002AF67 /* Universal Framework */,
 			);
 		};
 /* End PBXProject section */
@@ -224,6 +250,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		454515321A5D33BB0002AF67 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\n\n# This script builds the framework for both the simulator and the device, and then combines\n# them into one binary using lipo.\n#\n# On build success, the result is placed into the project folder, and finder will open to\n# that location for convenient access to the newly built framework.\n\nUNIVERSAL_OUTPUTFOLDER=${BUILD_DIR}/${CONFIGURATION}-universal\n\n# make sure the output directory exists\nmkdir -p \"${UNIVERSAL_OUTPUTFOLDER}\"\n\n# Step 1. Build Device and Simulator versions\nxcodebuild -target \"${PROJECT_NAME}\" ONLY_ACTIVE_ARCH=NO -configuration ${CONFIGURATION} -sdk iphoneos  BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_ROOT}\" clean build\nxcodebuild -target \"${PROJECT_NAME}\" -configuration ${CONFIGURATION} -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_ROOT}\" clean build\n\n# Step 2. Copy the framework structure (from iphoneos build) to the universal folder\ncp -R \"${BUILD_DIR}/${CONFIGURATION}-iphoneos/${PROJECT_NAME}.framework\" \"${UNIVERSAL_OUTPUTFOLDER}/\"\n\n# Step 3. Create universal binary file using lipo and place the combined executable in the copied framework directory\nlipo -create -output \"${UNIVERSAL_OUTPUTFOLDER}/${PROJECT_NAME}.framework/${PROJECT_NAME}\" \"${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/${PROJECT_NAME}.framework/${PROJECT_NAME}\" \"${BUILD_DIR}/${CONFIGURATION}-iphoneos/${PROJECT_NAME}.framework/${PROJECT_NAME}\"\n\n# Step 4. Convenience step to copy the framework to the project's directory\ncp -R \"${UNIVERSAL_OUTPUTFOLDER}/${PROJECT_NAME}.framework\" \"${PROJECT_DIR}/build\"\n\n# Step 5. Convenience step to open the project's directory in Finder\nopen \"${PROJECT_DIR}/build\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		454515011A5D2F440002AF67 /* Sources */ = {
@@ -251,6 +293,11 @@
 			isa = PBXTargetDependency;
 			target = 454515051A5D2F440002AF67 /* RESideMenu */;
 			targetProxy = 454515131A5D2F440002AF67 /* PBXContainerItemProxy */;
+		};
+		454515341A5D33CB0002AF67 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 454515051A5D2F440002AF67 /* RESideMenu */;
+			targetProxy = 454515331A5D33CB0002AF67 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -399,6 +446,20 @@
 			};
 			name = Release;
 		};
+		454515301A5D33AE0002AF67 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		454515311A5D33AE0002AF67 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -424,6 +485,14 @@
 			buildConfigurations = (
 				454515201A5D2F440002AF67 /* Debug */,
 				454515211A5D2F440002AF67 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		4545152F1A5D33AE0002AF67 /* Build configuration list for PBXAggregateTarget "Universal Framework" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				454515301A5D33AE0002AF67 /* Debug */,
+				454515311A5D33AE0002AF67 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
