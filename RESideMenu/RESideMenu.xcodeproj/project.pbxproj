@@ -27,9 +27,9 @@
 		454515191A5D2F440002AF67 /* RESideMenuTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 454515181A5D2F440002AF67 /* RESideMenuTests.m */; };
 		454515281A5D2F720002AF67 /* RECommonFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 454515221A5D2F720002AF67 /* RECommonFunctions.h */; };
 		454515291A5D2F720002AF67 /* RECommonFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 454515231A5D2F720002AF67 /* RECommonFunctions.m */; };
-		4545152A1A5D2F720002AF67 /* RESideMenuController.h in Headers */ = {isa = PBXBuildFile; fileRef = 454515241A5D2F720002AF67 /* RESideMenuController.h */; };
+		4545152A1A5D2F720002AF67 /* RESideMenuController.h in Headers */ = {isa = PBXBuildFile; fileRef = 454515241A5D2F720002AF67 /* RESideMenuController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4545152B1A5D2F720002AF67 /* RESideMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = 454515251A5D2F720002AF67 /* RESideMenuController.m */; };
-		4545152C1A5D2F720002AF67 /* UIViewController+RESideMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = 454515261A5D2F720002AF67 /* UIViewController+RESideMenu.h */; };
+		4545152C1A5D2F720002AF67 /* UIViewController+RESideMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = 454515261A5D2F720002AF67 /* UIViewController+RESideMenu.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4545152D1A5D2F720002AF67 /* UIViewController+RESideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 454515271A5D2F720002AF67 /* UIViewController+RESideMenu.m */; };
 /* End PBXBuildFile section */
 
@@ -479,6 +479,7 @@
 				4545151E1A5D2F440002AF67 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4545151F1A5D2F440002AF67 /* Build configuration list for PBXNativeTarget "RESideMenuTests" */ = {
 			isa = XCConfigurationList;
@@ -487,6 +488,7 @@
 				454515211A5D2F440002AF67 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4545152F1A5D33AE0002AF67 /* Build configuration list for PBXAggregateTarget "Universal Framework" */ = {
 			isa = XCConfigurationList;
@@ -495,6 +497,7 @@
 				454515311A5D33AE0002AF67 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
