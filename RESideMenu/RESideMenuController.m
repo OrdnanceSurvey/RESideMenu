@@ -246,6 +246,59 @@
     [self updateContentViewShadow];
 }
 
+- (BOOL)shouldAutomaticallyForwardAppearanceMethods
+{
+    return NO;
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    if (self.leftMenuVisible) {
+        [self.leftMenuViewController beginAppearanceTransition:YES animated:animated];
+    } else if (self.rightMenuVisible) {
+        [self.rightMenuViewController beginAppearanceTransition:YES animated:animated];
+    } else {
+        [self.contentViewController beginAppearanceTransition:YES animated:animated];
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    if (self.leftMenuVisible) {
+        [self.leftMenuViewController endAppearanceTransition];
+    } else if (self.rightMenuVisible) {
+        [self.rightMenuViewController endAppearanceTransition];
+    } else {
+        [self.contentViewController endAppearanceTransition];
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    if (self.leftMenuVisible) {
+        [self.leftMenuViewController beginAppearanceTransition:NO animated:animated];
+    } else if (self.rightMenuVisible) {
+        [self.rightMenuViewController beginAppearanceTransition:NO animated:animated];
+    } else {
+        [self.contentViewController beginAppearanceTransition:NO animated:animated];
+    }
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    if (self.leftMenuVisible) {
+        [self.leftMenuViewController endAppearanceTransition];
+    } else if (self.rightMenuVisible) {
+        [self.rightMenuViewController endAppearanceTransition];
+    } else {
+        [self.contentViewController endAppearanceTransition];
+    }
+}
+
 #pragma mark -
 #pragma mark Private methods
 
@@ -280,7 +333,9 @@
     [self addContentButton];
     [self updateContentViewShadow];
     [self resetContentViewScale];
-    
+    [self.leftMenuViewController beginAppearanceTransition:YES animated:YES];
+    [self.contentViewController beginAppearanceTransition:NO animated:YES];
+
     [UIView animateWithDuration:self.animationDuration animations:^{
         if (self.scaleContentView) {
             self.contentViewContainer.transform = CGAffineTransformMakeScale(self.contentViewScaleValue, self.contentViewScaleValue);
@@ -309,6 +364,8 @@
         
         self.visible = YES;
         self.leftMenuVisible = YES;
+        [self.leftMenuViewController endAppearanceTransition];
+        [self.contentViewController endAppearanceTransition];
     }];
     
     [self statusBarNeedsAppearanceUpdate];
@@ -325,7 +382,9 @@
     [self addContentButton];
     [self updateContentViewShadow];
     [self resetContentViewScale];
-    
+    [self.rightMenuViewController beginAppearanceTransition:YES animated:YES];
+    [self.contentViewController beginAppearanceTransition:NO animated:YES];
+
     [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
     [UIView animateWithDuration:self.animationDuration animations:^{
         if (self.scaleContentView) {
@@ -350,6 +409,8 @@
         self.rightMenuVisible = self.visible;
         [[UIApplication sharedApplication] endIgnoringInteractionEvents];
         [self addContentViewControllerMotionEffects];
+        [self.rightMenuViewController endAppearanceTransition];
+        [self.contentViewController endAppearanceTransition];
     }];
     
     [self statusBarNeedsAppearanceUpdate];
@@ -373,8 +434,11 @@
     self.leftMenuVisible = NO;
     self.rightMenuVisible = NO;
     [self.contentButton removeFromSuperview];
-    
-    __typeof (self) __weak weakSelf = self;
+    UIViewController *menu = rightMenuVisible ? self.rightMenuViewController : self.leftMenuViewController;
+    [menu beginAppearanceTransition:NO animated:animated];
+    [self.contentViewController beginAppearanceTransition:YES animated:animated];
+
+    __typeof(self) __weak weakSelf = self;
     void (^animationBlock)(void) = ^{
         __typeof (weakSelf) __strong strongSelf = weakSelf;
         if (!strongSelf) {
@@ -398,6 +462,8 @@
                }
             );
         }
+        [menu endAppearanceTransition];
+        [self.contentViewController endAppearanceTransition];
     };
     void (^completionBlock)(void) = ^{
         __typeof (weakSelf) __strong strongSelf = weakSelf;
