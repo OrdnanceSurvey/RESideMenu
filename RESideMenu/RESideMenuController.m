@@ -38,6 +38,7 @@
 @property (strong, readwrite, nonatomic) UIView *menuViewContainer;
 @property (strong, readwrite, nonatomic) UIView *contentViewContainer;
 @property (assign, readwrite, nonatomic) BOOL didNotifyDelegate;
+@property (strong, readwrite, nonatomic) UIView *temporaryContentView;
 
 @end
 
@@ -322,6 +323,23 @@
     }
 }
 
+- (void)addTranslatedContentView
+{
+    CGSize viewSize = self.contentViewContainer.frame.size;
+    CGSize imageSizeWithBorder = CGSizeMake(viewSize.width + 2, viewSize.height + 2);
+    UIGraphicsBeginImageContextWithOptions(imageSizeWithBorder, YES, 0);
+    [self.contentViewContainer.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+    imageView.frame = self.contentViewContainer.frame;
+    [self.contentViewContainer.superview addSubview:imageView];
+    self.contentViewContainer.hidden = YES;
+    self.temporaryContentView = self.contentViewContainer;
+    self.contentViewContainer = imageView;
+    imageView.userInteractionEnabled = YES;
+}
+
 - (void)showLeftMenuViewController
 {
     if (!self.leftMenuViewController) {
@@ -335,12 +353,21 @@
     [self resetContentViewScale];
     [self.leftMenuViewController beginAppearanceTransition:YES animated:YES];
     [self.contentViewController beginAppearanceTransition:NO animated:YES];
+    [self addTranslatedContentView];
 
     [UIView animateWithDuration:self.animationDuration animations:^{
         if (self.scaleContentView) {
-            self.contentViewContainer.transform = CGAffineTransformMakeScale(self.contentViewScaleValue, self.contentViewScaleValue);
+//            self.contentViewContainer.transform = CGAffineTransformMakeScale(self.contentViewScaleValue, self.contentViewScaleValue);
+            CATransform3D transform = CATransform3DIdentity;
+            transform.m34 = 1.0 / -500;
+            transform = CATransform3DRotate(transform, M_PI / 4, 0.0, 1.0, 0.0);
+            transform = CATransform3DScale(transform, self.contentViewScaleValue, self.contentViewScaleValue, 1.0);
+//            CGFloat tx = (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? self.contentViewInLandscapeOffsetCenterX : self.contentViewInPortraitOffsetCenterX);
+//            transform = CATransform3DTranslate(transform, tx, 0, 0);
+            self.contentViewContainer.layer.transform = transform;
         } else {
-            self.contentViewContainer.transform = CGAffineTransformIdentity;
+//            self.contentViewContainer.transform = CGAffineTransformIdentity;
+            self.contentViewContainer.layer.transform = CATransform3DIdentity;
         }
         
         if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
@@ -463,7 +490,10 @@
             );
         }
         [menu endAppearanceTransition];
-        [self.contentViewController endAppearanceTransition];
+        [strongSelf.contentViewController endAppearanceTransition];
+        strongSelf.temporaryContentView.hidden = NO;
+        [strongSelf.contentViewContainer removeFromSuperview];
+        strongSelf.contentViewContainer = strongSelf.temporaryContentView;
     };
     void (^completionBlock)(void) = ^{
         __typeof (weakSelf) __strong strongSelf = weakSelf;
@@ -473,6 +503,7 @@
         if (!strongSelf.visible && [strongSelf.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [strongSelf.delegate respondsToSelector:@selector(sideMenu:didHideMenuViewController:)]) {
             [strongSelf.delegate sideMenu:strongSelf didHideMenuViewController:rightMenuVisible ? strongSelf.rightMenuViewController : strongSelf.leftMenuViewController];
         }
+        strongSelf.temporaryContentView = nil;
     };
     
     if (animated) {
