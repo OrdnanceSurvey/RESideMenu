@@ -113,6 +113,8 @@
     _contentViewInLandscapeOffsetCenterX = 30.f;
     _contentViewInPortraitOffsetCenterX = 30.f;
     _contentViewScaleValue = 0.7f;
+
+    _rotationAmountRadians = 0.75;
 }
 
 #pragma mark -
@@ -414,7 +416,7 @@
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
-    animation.toValue = @-0.5;
+    animation.toValue = [NSNumber numberWithDouble:self.rotationAmountRadians];
     animation.fillMode = kCAFillModeForwards;
     animation.duration = self.animationDuration;
     animation.removedOnCompletion = NO;
@@ -470,7 +472,8 @@
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
-    animation.toValue = @0.5;
+    animation.toValue = [NSNumber numberWithDouble:-self.rotationAmountRadians];
+    ;
     animation.fillMode = kCAFillModeForwards;
     animation.duration = self.animationDuration;
     animation.removedOnCompletion = NO;
@@ -557,15 +560,15 @@
         }];
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
         if (isHidingRightMenu) {
-            animation.fromValue = @0.5;
+            animation.fromValue = [NSNumber numberWithDouble:-self.rotationAmountRadians];
         } else {
-            animation.fromValue = @-0.5;
+            animation.fromValue = [NSNumber numberWithDouble:self.rotationAmountRadians];
         }
         animation.toValue = @0.0;
         animation.fillMode = kCAFillModeForwards;
         animation.duration = self.animationDuration;
         animation.removedOnCompletion = NO;
-        [self.perspectiveAnimationLayer addAnimation:animation forKey:@"reset"];
+        [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
     }
     [CATransaction commit];
 

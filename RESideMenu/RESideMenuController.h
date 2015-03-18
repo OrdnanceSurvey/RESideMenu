@@ -32,7 +32,7 @@
 
 @protocol RESideMenuControllerDelegate;
 
-@interface RESideMenuController : UIViewController <UIGestureRecognizerDelegate>
+@interface RESideMenuController : UIViewController<UIGestureRecognizerDelegate>
 
 #if __IPHONE_8_0
 @property (strong, readwrite, nonatomic) IBInspectable NSString *contentViewStoryboardID;
@@ -73,6 +73,7 @@
 @property (assign, readwrite, nonatomic) IBInspectable BOOL bouncesHorizontally;
 @property (assign, readwrite, nonatomic) UIStatusBarStyle menuPreferredStatusBarStyle;
 @property (assign, readwrite, nonatomic) IBInspectable BOOL menuPrefersStatusBarHidden;
+@property (assign, readwrite, nonatomic) IBInspectable double rotationAmountRadians;
 
 - (id)initWithContentViewController:(UIViewController *)contentViewController
              leftMenuViewController:(UIViewController *)leftMenuViewController
@@ -84,7 +85,7 @@
 
 @end
 
-@protocol RESideMenuControllerDelegate <NSObject>
+@protocol RESideMenuControllerDelegate<NSObject>
 
 @optional
 - (void)sideMenu:(RESideMenuController *)sideMenu didRecognizePanGesture:(UIPanGestureRecognizer *)recognizer;
