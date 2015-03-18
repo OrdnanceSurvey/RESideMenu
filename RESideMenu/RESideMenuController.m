@@ -333,6 +333,13 @@
     contentView.layer.sublayerTransform = transform;
 }
 
+- (void)cleanupAnimationLayer {
+    [self.perspectiveAnimationLayer removeFromSuperlayer];
+    self.perspectiveAnimationLayer = nil;
+    [self.contentViewController.view setHidden:NO];
+    self.contentViewContainer.layer.sublayerTransform = CATransform3DIdentity;
+}
+
 #pragma mark - Private methods
 
 - (void)presentMenuViewContainerWithMenuViewController:(UIViewController *)menuViewController {
@@ -479,16 +486,16 @@
 }
 
 - (void)hideMenuViewControllerAnimated:(BOOL)animated {
-    BOOL rightMenuVisible = self.rightMenuVisible;
+    BOOL isHidingRightMenu = self.rightMenuVisible;
     if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willHideMenuViewController:)]) {
-        [self.delegate sideMenu:self willHideMenuViewController:rightMenuVisible ? self.rightMenuViewController : self.leftMenuViewController];
+        [self.delegate sideMenu:self willHideMenuViewController:isHidingRightMenu ? self.rightMenuViewController : self.leftMenuViewController];
     }
 
     self.visible = NO;
     self.leftMenuVisible = NO;
     self.rightMenuVisible = NO;
     [self.contentButton removeFromSuperview];
-    UIViewController *menu = rightMenuVisible ? self.rightMenuViewController : self.leftMenuViewController;
+    UIViewController *menu = isHidingRightMenu ? self.rightMenuViewController : self.leftMenuViewController;
     [menu beginAppearanceTransition:NO animated:animated];
     [self.contentViewController beginAppearanceTransition:YES animated:animated];
 
@@ -525,7 +532,7 @@
             return;
         }
         if (!strongSelf.visible && [strongSelf.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [strongSelf.delegate respondsToSelector:@selector(sideMenu:didHideMenuViewController:)]) {
-            [strongSelf.delegate sideMenu:strongSelf didHideMenuViewController:rightMenuVisible ? strongSelf.rightMenuViewController : strongSelf.leftMenuViewController];
+            [strongSelf.delegate sideMenu:strongSelf didHideMenuViewController:isHidingRightMenu ? strongSelf.rightMenuViewController : strongSelf.leftMenuViewController];
         }
     };
 
@@ -541,6 +548,27 @@
         animationBlock();
         completionBlock();
     }
+
+    // Reset the perspective rotation animation
+    [CATransaction begin];
+    {
+        [CATransaction setCompletionBlock:^{
+            [self cleanupAnimationLayer];
+        }];
+        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
+        if (isHidingRightMenu) {
+            animation.fromValue = @0.5;
+        } else {
+            animation.fromValue = @-0.5;
+        }
+        animation.toValue = @0.0;
+        animation.fillMode = kCAFillModeForwards;
+        animation.duration = self.animationDuration;
+        animation.removedOnCompletion = NO;
+        [self.perspectiveAnimationLayer addAnimation:animation forKey:@"reset"];
+    }
+    [CATransaction commit];
+
     [self statusBarNeedsAppearanceUpdate];
 }
 
