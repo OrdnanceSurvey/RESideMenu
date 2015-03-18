@@ -460,7 +460,7 @@
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
-    animation.toValue = [NSNumber numberWithDouble:self.perspectiveRotationAmountRadians];
+    animation.toValue = @(self.perspectiveRotationAmountRadians);
     animation.fillMode = kCAFillModeForwards;
     animation.duration = self.animationDuration;
     animation.removedOnCompletion = NO;
@@ -469,7 +469,7 @@
     // Perspective shadow animation
     CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
     shadowAnimation.fromValue = @0.0;
-    shadowAnimation.toValue = [NSNumber numberWithFloat:self.perspectiveShadowOpacity];
+    shadowAnimation.toValue = @(self.perspectiveShadowOpacity);
     shadowAnimation.fillMode = kCAFillModeForwards;
     shadowAnimation.duration = self.animationDuration;
     shadowAnimation.removedOnCompletion = NO;
@@ -526,7 +526,7 @@
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
-    animation.toValue = [NSNumber numberWithDouble:-self.perspectiveRotationAmountRadians];
+    animation.toValue = @(-self.perspectiveRotationAmountRadians);
     animation.fillMode = kCAFillModeForwards;
     animation.duration = self.animationDuration;
     animation.removedOnCompletion = NO;
@@ -535,7 +535,7 @@
     // Perspective shadow animation
     CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
     shadowAnimation.fromValue = @0.0;
-    shadowAnimation.toValue = [NSNumber numberWithFloat:self.perspectiveShadowOpacity];
+    shadowAnimation.toValue = @(self.perspectiveShadowOpacity);
     shadowAnimation.fillMode = kCAFillModeForwards;
     shadowAnimation.duration = self.animationDuration;
     shadowAnimation.removedOnCompletion = NO;
@@ -622,9 +622,9 @@
         }];
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
         if (isHidingRightMenu) {
-            animation.fromValue = [NSNumber numberWithDouble:-self.perspectiveRotationAmountRadians];
+            animation.fromValue = @(-self.perspectiveRotationAmountRadians);
         } else {
-            animation.fromValue = [NSNumber numberWithDouble:self.perspectiveRotationAmountRadians];
+            animation.fromValue = @(self.perspectiveRotationAmountRadians);
         }
         animation.toValue = @0.0;
         animation.fillMode = kCAFillModeForwards;
@@ -634,7 +634,7 @@
 
         // Perspective shadow animation
         CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        shadowAnimation.fromValue = [NSNumber numberWithFloat:self.perspectiveShadowOpacity];
+        shadowAnimation.fromValue = @(self.perspectiveShadowOpacity);
         shadowAnimation.toValue = @0.0;
         shadowAnimation.fillMode = kCAFillModeForwards;
         shadowAnimation.duration = self.animationDuration;
