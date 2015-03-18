@@ -423,6 +423,9 @@
     self.leftMenuViewController.view.hidden = YES;
     self.rightMenuViewController.view.hidden = NO;
     [self.view.window endEditing:YES];
+
+    [self buildLayerForAnimation];
+
     [self addContentButton];
     [self updateContentViewShadow];
     [self resetContentViewScale];
@@ -456,6 +459,16 @@
         [self.rightMenuViewController endAppearanceTransition];
         [self.contentViewController endAppearanceTransition];
     }];
+
+    // Perspective rotation animation
+    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
+    animation.fromValue = @0.0;
+    animation.toValue = @0.5;
+    animation.fillMode = kCAFillModeForwards;
+    animation.duration = self.animationDuration;
+    animation.removedOnCompletion = NO;
+    [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
+
     [self statusBarNeedsAppearanceUpdate];
 }
 
