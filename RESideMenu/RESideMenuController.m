@@ -325,6 +325,8 @@
     animationLayer.anchorPoint = CGPointZero;
     animationLayer.position = contentView.frame.origin;
     animationLayer.contents = (id)contentViewSnapshot.CGImage;
+    [animationLayer setMasksToBounds:YES];
+    animationLayer.cornerRadius = 6.0f;
 
     self.perspectiveAnimationLayer = animationLayer;
     [self.contentViewContainer.layer addSublayer:self.perspectiveAnimationLayer];
