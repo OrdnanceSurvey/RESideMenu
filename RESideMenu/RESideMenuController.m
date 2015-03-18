@@ -326,11 +326,10 @@
     [self.contentViewContainer.layer addSublayer:self.perspectiveAnimationLayer];
     [self.contentViewController.view setHidden:YES];
 
-    // m34 on the transform dictates perspective depth. Make it proportional to the
-    // height of the original view being transformed
+    // m34 on the transform dictates perspective depth. We make it proportional
+    // to the height of the original view being transformed for best effect.
     CATransform3D transform = CATransform3DIdentity;
     transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
-    transform = CATransform3DRotate(transform, -0.5f, 0.0f, 1.0f, 0.0f);
     contentView.layer.sublayerTransform = transform;
 }
 
@@ -373,7 +372,6 @@
     [self.contentViewController beginAppearanceTransition:NO animated:YES];
 
     [UIView animateWithDuration:self.animationDuration animations:^{
-        /*
         if (self.scaleContentView) {
             self.contentViewContainer.transform = CGAffineTransformMakeScale(self.contentViewScaleValue, self.contentViewScaleValue);
         } else {
@@ -385,7 +383,6 @@
         } else {
             self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? self.contentViewInLandscapeOffsetCenterX + CGRectGetHeight(self.view.frame) : self.contentViewInPortraitOffsetCenterX + CGRectGetWidth(self.view.frame)), self.contentViewContainer.center.y);
         }
-         */
 
         self.menuViewContainer.alpha = !self.fadeMenuView ?: 1.0f;
         self.contentViewContainer.alpha = self.contentViewFadeOutAlpha;
@@ -406,6 +403,15 @@
         [self.leftMenuViewController endAppearanceTransition];
         [self.contentViewController endAppearanceTransition];
     }];
+
+    // Perspective rotation animation
+    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
+    animation.fromValue = @0.0;
+    animation.toValue = @-0.5;
+    animation.fillMode = kCAFillModeForwards;
+    animation.duration = self.animationDuration;
+    animation.removedOnCompletion = NO;
+    [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
 
     [self statusBarNeedsAppearanceUpdate];
 }
@@ -450,7 +456,6 @@
         [self.rightMenuViewController endAppearanceTransition];
         [self.contentViewController endAppearanceTransition];
     }];
-
     [self statusBarNeedsAppearanceUpdate];
 }
 
