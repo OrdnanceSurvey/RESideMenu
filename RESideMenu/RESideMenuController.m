@@ -316,10 +316,37 @@
     return renderedImage;
 }
 
+/**
+ *  Render a duplicate of an image with transparent edges. This is useful for
+ * CALayer 3d transforms, as it will give a nice anti-aliased edge to edges that
+ * are not perfectly horizontal or vertical.
+
+ *
+ *  @param image  The source image to render
+ *  @param insets The size of the transparent margins to create.
+ *
+ *  @return The rendered image with specified transparent edges.
+ */
+- (UIImage *)renderImageForAntialiasing:(UIImage *)image withTransparentInsets:(UIEdgeInsets)insets {
+    CGSize imageSizeWithBorder = CGSizeMake([image size].width + insets.left + insets.right, [image size].height + insets.top + insets.bottom);
+    UIGraphicsBeginImageContextWithOptions(imageSizeWithBorder, UIEdgeInsetsEqualToEdgeInsets(insets, UIEdgeInsetsZero), 0);
+    [image drawInRect:(CGRect){{insets.left, insets.top}, [image size]}];
+    UIImage *renderedImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return renderedImage;
+}
+
 - (void)buildLayerForAnimation {
     UIView *contentView = self.contentViewContainer;
     UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
-    UIImage *contentViewSnapshot = [self renderImageFromView:contentView withRect:contentView.bounds transparentInsets:edgeInsets];
+
+    UIImage *contentViewSnapshot = nil;
+    if ([self.delegate respondsToSelector:@selector(contentSnapshotImageForSideMenu:)]) {
+        UIImage *sourceImage = [self.delegate contentSnapshotImageForSideMenu:self];
+        contentViewSnapshot = [self renderImageForAntialiasing:sourceImage withTransparentInsets:edgeInsets];
+    } else {
+        contentViewSnapshot = [self renderImageFromView:contentView withRect:contentView.bounds transparentInsets:edgeInsets];
+    }
     CALayer *animationLayer = [CALayer layer];
     animationLayer.frame = contentView.frame;
     animationLayer.anchorPoint = CGPointZero;
