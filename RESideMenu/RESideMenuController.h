@@ -73,7 +73,8 @@
 @property (assign, readwrite, nonatomic) IBInspectable BOOL bouncesHorizontally;
 @property (assign, readwrite, nonatomic) UIStatusBarStyle menuPreferredStatusBarStyle;
 @property (assign, readwrite, nonatomic) IBInspectable BOOL menuPrefersStatusBarHidden;
-@property (assign, readwrite, nonatomic) IBInspectable double rotationAmountRadians;
+@property (assign, readwrite, nonatomic) IBInspectable double perspectiveRotationAmountRadians;
+@property (assign, readwrite, nonatomic) IBInspectable float perspectiveShadowOpacity;
 
 - (id)initWithContentViewController:(UIViewController *)contentViewController
              leftMenuViewController:(UIViewController *)leftMenuViewController

@@ -40,6 +40,7 @@
 @property (strong, readwrite, nonatomic) UIView *contentViewContainer;
 @property (assign, readwrite, nonatomic) BOOL didNotifyDelegate;
 @property (strong, nonatomic) CALayer *perspectiveAnimationLayer;
+@property (strong, nonatomic) CALayer *perspectiveShadowLayer;
 
 @end
 
@@ -114,7 +115,8 @@
     _contentViewInPortraitOffsetCenterX = 30.f;
     _contentViewScaleValue = 0.7f;
 
-    _rotationAmountRadians = 0.75;
+    _perspectiveRotationAmountRadians = 0.75;
+    _perspectiveShadowOpacity = 0.5f;
 }
 
 #pragma mark -
@@ -335,6 +337,18 @@
     contentView.layer.sublayerTransform = transform;
 }
 
+- (void)createShadowLayer {
+    CAGradientLayer *shadowLayer = [[CAGradientLayer alloc] init];
+    shadowLayer.frame = self.perspectiveAnimationLayer.frame;
+    shadowLayer.startPoint = CGPointMake(0.0, 0.5);
+    shadowLayer.endPoint = CGPointMake(1.0, 0.5);
+    shadowLayer.opacity = 0.5f;
+
+    shadowLayer.colors = @[ (id)[UIColor clearColor].CGColor, (id)[UIColor blackColor].CGColor, (id)[UIColor blackColor].CGColor ];
+    self.perspectiveShadowLayer = shadowLayer;
+    [self.perspectiveAnimationLayer addSublayer:self.perspectiveShadowLayer];
+}
+
 - (void)cleanupAnimationLayer {
     [self.perspectiveAnimationLayer removeFromSuperlayer];
     self.perspectiveAnimationLayer = nil;
@@ -373,6 +387,7 @@
     [self.view.window endEditing:YES];
 
     [self buildLayerForAnimation];
+    [self createShadowLayer];
 
     [self addContentButton];
     [self updateContentViewShadow];
@@ -416,11 +431,20 @@
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
-    animation.toValue = [NSNumber numberWithDouble:self.rotationAmountRadians];
+    animation.toValue = [NSNumber numberWithDouble:self.perspectiveRotationAmountRadians];
     animation.fillMode = kCAFillModeForwards;
     animation.duration = self.animationDuration;
     animation.removedOnCompletion = NO;
     [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
+
+    // Perspective shadow animation
+    CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    shadowAnimation.fromValue = @0.0;
+    shadowAnimation.toValue = [NSNumber numberWithFloat:self.perspectiveShadowOpacity];
+    shadowAnimation.fillMode = kCAFillModeForwards;
+    shadowAnimation.duration = self.animationDuration;
+    shadowAnimation.removedOnCompletion = NO;
+    [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:nil];
 
     [self statusBarNeedsAppearanceUpdate];
 }
@@ -434,6 +458,7 @@
     [self.view.window endEditing:YES];
 
     [self buildLayerForAnimation];
+    [self createShadowLayer];
 
     [self addContentButton];
     [self updateContentViewShadow];
@@ -472,12 +497,20 @@
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
-    animation.toValue = [NSNumber numberWithDouble:-self.rotationAmountRadians];
-    ;
+    animation.toValue = [NSNumber numberWithDouble:-self.perspectiveRotationAmountRadians];
     animation.fillMode = kCAFillModeForwards;
     animation.duration = self.animationDuration;
     animation.removedOnCompletion = NO;
     [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
+
+    // Perspective shadow animation
+    CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    shadowAnimation.fromValue = @0.0;
+    shadowAnimation.toValue = [NSNumber numberWithFloat:self.perspectiveShadowOpacity];
+    shadowAnimation.fillMode = kCAFillModeForwards;
+    shadowAnimation.duration = self.animationDuration;
+    shadowAnimation.removedOnCompletion = NO;
+    [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:nil];
 
     [self statusBarNeedsAppearanceUpdate];
 }
@@ -552,7 +585,7 @@
         completionBlock();
     }
 
-    // Reset the perspective rotation animation
+    // Reset the perspective rotation and shadow animations
     [CATransaction begin];
     {
         [CATransaction setCompletionBlock:^{
@@ -560,15 +593,24 @@
         }];
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
         if (isHidingRightMenu) {
-            animation.fromValue = [NSNumber numberWithDouble:-self.rotationAmountRadians];
+            animation.fromValue = [NSNumber numberWithDouble:-self.perspectiveRotationAmountRadians];
         } else {
-            animation.fromValue = [NSNumber numberWithDouble:self.rotationAmountRadians];
+            animation.fromValue = [NSNumber numberWithDouble:self.perspectiveRotationAmountRadians];
         }
         animation.toValue = @0.0;
         animation.fillMode = kCAFillModeForwards;
         animation.duration = self.animationDuration;
         animation.removedOnCompletion = NO;
         [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
+
+        // Perspective shadow animation
+        CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+        shadowAnimation.fromValue = [NSNumber numberWithFloat:self.perspectiveShadowOpacity];
+        shadowAnimation.toValue = @0.0;
+        shadowAnimation.fillMode = kCAFillModeForwards;
+        shadowAnimation.duration = self.animationDuration;
+        shadowAnimation.removedOnCompletion = NO;
+        [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:nil];
     }
     [CATransaction commit];
 
