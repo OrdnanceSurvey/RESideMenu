@@ -337,7 +337,7 @@
     return renderedImage;
 }
 
-- (void)buildLayerForAnimation {
+- (void)buildLayersForAnimation {
     UIView *contentView = self.contentViewContainer;
     UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
 
@@ -443,23 +443,23 @@
     }
 }
 
-- (void)showLeftMenuViewController {
-    if (!self.leftMenuViewController) {
-        return;
-    }
-
-    self.leftMenuViewController.view.hidden = NO;
-    self.rightMenuViewController.view.hidden = YES;
+-(void)animateMenuControllerAppearanceLeft:(bool)isLeft {
+    self.leftMenuViewController.view.hidden = !isLeft;
+    self.rightMenuViewController.view.hidden = isLeft;
     [self.view.window endEditing:YES];
-
-    [self buildLayerForAnimation];
-
+    
+    [self buildLayersForAnimation];
+    
     [self addContentButton];
     [self updateContentViewShadow];
     [self resetContentViewScale];
     [self.leftMenuViewController beginAppearanceTransition:YES animated:YES];
     [self.contentViewController beginAppearanceTransition:NO animated:YES];
-
+    
+    if(!isLeft) {
+            [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
+    }
+    
     [UIView animateWithDuration:self.animationDuration animations:^{
         if (self.scaleContentView) {
             self.contentViewContainer.transform = CGAffineTransformMakeScale(self.contentViewScaleValue, self.contentViewScaleValue);
@@ -468,40 +468,62 @@
         }
         
         if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
-            self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? self.contentViewInLandscapeOffsetCenterX + CGRectGetWidth(self.view.frame) : self.contentViewInPortraitOffsetCenterX + CGRectGetWidth(self.view.frame)), self.contentViewContainer.center.y);
+            if(isLeft) {
+                self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? self.contentViewInLandscapeOffsetCenterX + CGRectGetWidth(self.view.frame) : self.contentViewInPortraitOffsetCenterX + CGRectGetWidth(self.view.frame)), self.contentViewContainer.center.y);
+            } else {
+                self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? -self.contentViewInLandscapeOffsetCenterX : -self.contentViewInPortraitOffsetCenterX), self.contentViewContainer.center.y);
+            }
         } else {
             self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? self.contentViewInLandscapeOffsetCenterX + CGRectGetHeight(self.view.frame) : self.contentViewInPortraitOffsetCenterX + CGRectGetWidth(self.view.frame)), self.contentViewContainer.center.y);
         }
-
+        
         self.menuViewContainer.alpha = !self.fadeMenuView ?: 1.0f;
         self.contentViewContainer.alpha = self.contentViewFadeOutAlpha;
         self.menuViewContainer.transform = CGAffineTransformIdentity;
         if (self.scaleBackgroundImageView) {
             self.backgroundImageView.transform = CGAffineTransformIdentity;
         }
-
-    } completion:^(BOOL finished) {
-        [self addContentViewControllerMotionEffects];
         
-        if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
-            [self.delegate sideMenu:self didShowMenuViewController:self.leftMenuViewController];
+    } completion:^(BOOL finished) {
+        if(isLeft) {
+            [self addContentViewControllerMotionEffects];
         }
         
-        self.visible = YES;
-        self.leftMenuVisible = YES;
-        [self.leftMenuViewController endAppearanceTransition];
+        if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
+            if(isLeft) {
+                [self.delegate sideMenu:self didShowMenuViewController:self.leftMenuViewController];
+            } else {
+                [self.delegate sideMenu:self didShowMenuViewController:self.rightMenuViewController];
+            }
+        }
+        if(!isLeft) {
+            self.visible = !(self.contentViewContainer.frame.size.width == self.view.bounds.size.width && self.contentViewContainer.frame.size.height == self.view.bounds.size.height && self.contentViewContainer.frame.origin.x == 0 && self.contentViewContainer.frame.origin.y == 0);
+            self.rightMenuVisible = self.visible;
+            [[UIApplication sharedApplication] endIgnoringInteractionEvents];
+            [self.rightMenuViewController endAppearanceTransition];
+        } else {
+            self.visible = YES;
+            self.leftMenuVisible = YES;
+            [self.leftMenuViewController endAppearanceTransition];
+        }
         [self.contentViewController endAppearanceTransition];
     }];
-
+    
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
-    animation.toValue = @(self.perspectiveRotationAmountRadians);
+    
+    if(isLeft) {
+        animation.toValue = @(self.perspectiveRotationAmountRadians);
+    } else {
+        animation.toValue = @(-self.perspectiveRotationAmountRadians);
+    }
+    
     animation.fillMode = kCAFillModeForwards;
     animation.duration = self.animationDuration;
     animation.removedOnCompletion = NO;
     [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
-
+    
     // Perspective shadow animation
     CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
     shadowAnimation.fromValue = @0.0;
@@ -510,73 +532,16 @@
     shadowAnimation.duration = self.animationDuration;
     shadowAnimation.removedOnCompletion = NO;
     [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:nil];
-
+    
     [self statusBarNeedsAppearanceUpdate];
 }
 
 - (void)showRightMenuViewController {
-    if (!self.rightMenuViewController) {
-        return;
-    }
-    self.leftMenuViewController.view.hidden = YES;
-    self.rightMenuViewController.view.hidden = NO;
-    [self.view.window endEditing:YES];
+    [self animateMenuControllerAppearanceLeft:NO];
+}
 
-    [self buildLayerForAnimation];
-
-    [self addContentButton];
-    [self updateContentViewShadow];
-    [self resetContentViewScale];
-    [self.rightMenuViewController beginAppearanceTransition:YES animated:YES];
-    [self.contentViewController beginAppearanceTransition:NO animated:YES];
-
-    [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
-    [UIView animateWithDuration:self.animationDuration animations:^{
-        if (self.scaleContentView) {
-            self.contentViewContainer.transform = CGAffineTransformMakeScale(self.contentViewScaleValue, self.contentViewScaleValue);
-        } else {
-            self.contentViewContainer.transform = CGAffineTransformIdentity;
-        }
-        self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? -self.contentViewInLandscapeOffsetCenterX : -self.contentViewInPortraitOffsetCenterX), self.contentViewContainer.center.y);
-        
-        self.menuViewContainer.alpha = !self.fadeMenuView ?: 1.0f;
-        self.contentViewContainer.alpha = self.contentViewFadeOutAlpha;
-        self.menuViewContainer.transform = CGAffineTransformIdentity;
-        if (self.scaleBackgroundImageView)
-            self.backgroundImageView.transform = CGAffineTransformIdentity;
-
-    } completion:^(BOOL finished) {
-        if (!self.rightMenuVisible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
-            [self.delegate sideMenu:self didShowMenuViewController:self.rightMenuViewController];
-        }
-        
-        self.visible = !(self.contentViewContainer.frame.size.width == self.view.bounds.size.width && self.contentViewContainer.frame.size.height == self.view.bounds.size.height && self.contentViewContainer.frame.origin.x == 0 && self.contentViewContainer.frame.origin.y == 0);
-        self.rightMenuVisible = self.visible;
-        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
-        [self addContentViewControllerMotionEffects];
-        [self.rightMenuViewController endAppearanceTransition];
-        [self.contentViewController endAppearanceTransition];
-    }];
-
-    // Perspective rotation animation
-    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
-    animation.fromValue = @0.0;
-    animation.toValue = @(-self.perspectiveRotationAmountRadians);
-    animation.fillMode = kCAFillModeForwards;
-    animation.duration = self.animationDuration;
-    animation.removedOnCompletion = NO;
-    [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
-
-    // Perspective shadow animation
-    CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    shadowAnimation.fromValue = @0.0;
-    shadowAnimation.toValue = @(self.perspectiveShadowOpacity);
-    shadowAnimation.fillMode = kCAFillModeForwards;
-    shadowAnimation.duration = self.animationDuration;
-    shadowAnimation.removedOnCompletion = NO;
-    [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:nil];
-
-    [self statusBarNeedsAppearanceUpdate];
+- (void)showLeftMenuViewController {
+    [self animateMenuControllerAppearanceLeft:YES];
 }
 
 - (void)hideViewController:(UIViewController *)viewController {
