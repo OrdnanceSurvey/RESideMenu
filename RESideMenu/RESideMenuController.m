@@ -41,6 +41,7 @@
 @property (assign, readwrite, nonatomic) BOOL didNotifyDelegate;
 @property (strong, nonatomic) CALayer *perspectiveAnimationLayer;
 @property (strong, nonatomic) CALayer *perspectiveShadowLayer;
+@property (strong, nonatomic) CALayer *perspectiveGestureInteractionLayer;
 
 @end
 
@@ -364,6 +365,8 @@
     CATransform3D transform = CATransform3DIdentity;
     transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
     contentView.layer.sublayerTransform = transform;
+
+    [self createShadowLayer];
 }
 
 - (void)createShadowLayer {
@@ -378,11 +381,45 @@
     [self.perspectiveAnimationLayer addSublayer:self.perspectiveShadowLayer];
 }
 
+- (void)buildLayerForGestureInteraction {
+    UIView *contentView = self.contentViewContainer;
+    UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
+    
+    UIImage *contentViewSnapshot = nil;
+    if ([self.delegate respondsToSelector:@selector(contentSnapshotImageForSideMenu:)]) {
+        UIImage *sourceImage = [self.delegate contentSnapshotImageForSideMenu:self];
+        contentViewSnapshot = [self renderImageForAntialiasing:sourceImage withTransparentInsets:edgeInsets];
+    } else {
+        contentViewSnapshot = [self renderImageFromView:contentView withRect:contentView.bounds transparentInsets:edgeInsets];
+    }
+    CALayer *animationLayer = [CALayer layer];
+    animationLayer.frame = self.perspectiveAnimationLayer.frame;
+    animationLayer.anchorPoint = CGPointZero;
+    animationLayer.position = self.perspectiveAnimationLayer.frame.origin;
+    animationLayer.contents = (id)contentViewSnapshot.CGImage;
+    [animationLayer setMasksToBounds:YES];
+    animationLayer.cornerRadius = 6.0f;
+    
+    self.perspectiveGestureInteractionLayer = animationLayer;
+    [self.contentViewContainer.layer addSublayer:self.perspectiveGestureInteractionLayer];
+    [self.contentViewController.view setHidden:YES];
+    
+    // m34 on the transform dictates perspective depth. We make it proportional
+    // to the height of the original view being transformed for best effect.
+    CATransform3D transform = CATransform3DIdentity;
+    transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
+    contentView.layer.sublayerTransform = transform;
+}
+
 - (void)cleanupAnimationLayer {
     [self.perspectiveAnimationLayer removeFromSuperlayer];
     self.perspectiveAnimationLayer = nil;
+    [self.perspectiveShadowLayer removeFromSuperlayer];
+    self.perspectiveShadowLayer = nil;
+    [self.perspectiveGestureInteractionLayer removeFromSuperlayer];
+    self.perspectiveGestureInteractionLayer = nil;
+    
     [self.contentViewController.view setHidden:NO];
-    self.contentViewContainer.layer.sublayerTransform = CATransform3DIdentity;
 }
 
 #pragma mark - Private methods
@@ -416,7 +453,6 @@
     [self.view.window endEditing:YES];
 
     [self buildLayerForAnimation];
-    [self createShadowLayer];
 
     [self addContentButton];
     [self updateContentViewShadow];
@@ -487,7 +523,6 @@
     [self.view.window endEditing:YES];
 
     [self buildLayerForAnimation];
-    [self createShadowLayer];
 
     [self addContentButton];
     [self updateContentViewShadow];
@@ -775,6 +810,8 @@
         [self addContentButton];
         [self.view.window endEditing:YES];
         self.didNotifyDelegate = NO;
+        
+        [self buildLayerForGestureInteraction];
     }
 
     if (recognizer.state == UIGestureRecognizerStateChanged) {
@@ -796,7 +833,7 @@
             backgroundViewScale = MAX(backgroundViewScale, 1.0);
             menuViewScale = MAX(menuViewScale, 1.0);
         }
-
+        
         self.menuViewContainer.alpha = !self.fadeMenuView ?: delta;
         self.contentViewContainer.alpha = 1 - (1 - self.contentViewFadeOutAlpha) * delta;
 
@@ -867,6 +904,17 @@
             self.visible = NO;
             self.rightMenuVisible = NO;
         }
+        
+        //3d rotation
+        float fractionFromLeftEdge = self.contentViewContainer.frame.origin.x / self.view.frame.size.width;
+        float angle = self.perspectiveRotationAmountRadians * fractionFromLeftEdge;
+        
+        [CATransaction begin];
+        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+        self.perspectiveGestureInteractionLayer.transform = CATransform3DMakeRotation(angle, 0, 1, 0);
+        [CATransaction commit];
+        
+        self.perspectiveShadowLayer.opacity = fabs(fractionFromLeftEdge);
 
         [self statusBarNeedsAppearanceUpdate];
     }
@@ -876,12 +924,15 @@
         if (self.panMinimumOpenThreshold > 0 && ((self.contentViewContainer.frame.origin.x < 0 && self.contentViewContainer.frame.origin.x > -((NSInteger)self.panMinimumOpenThreshold)) ||
                                                  (self.contentViewContainer.frame.origin.x > 0 && self.contentViewContainer.frame.origin.x < self.panMinimumOpenThreshold))) {
             [self hideMenuViewController];
+            [self cleanupAnimationLayer];
         } else if (self.contentViewContainer.frame.origin.x == 0) {
             [self hideMenuViewControllerAnimated:NO];
+            [self cleanupAnimationLayer];
         } else {
             if ([recognizer velocityInView:self.view].x > 0) {
                 if (self.contentViewContainer.frame.origin.x < 0) {
                     [self hideMenuViewController];
+                    [self cleanupAnimationLayer];
                 } else {
                     if (self.leftMenuViewController) {
                         [self showLeftMenuViewController];
@@ -894,6 +945,7 @@
                     }
                 } else {
                     [self hideMenuViewController];
+                    [self cleanupAnimationLayer];
                 }
             }
         }
