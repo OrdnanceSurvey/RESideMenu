@@ -28,7 +28,8 @@
 #import "RECommonFunctions.h"
 #import <QuartzCore/QuartzCore.h>
 
-typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
+typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
+{
     RESideMenuControllerDirectionLeft,
     RESideMenuControllerDirectionRight
 };
@@ -55,7 +56,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 #pragma mark -
 #pragma mark Instance lifecycle
 
-- (id)init {
+- (id)init
+{
     self = [super init];
     if (self) {
         [self commonInit];
@@ -63,7 +65,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     return self;
 }
 
-- (id)initWithCoder:(NSCoder *)decoder {
+- (id)initWithCoder:(NSCoder *)decoder
+{
     self = [super initWithCoder:decoder];
     if (self) {
         [self commonInit];
@@ -72,7 +75,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 }
 
 #if __IPHONE_8_0
-- (void)awakeFromNib {
+- (void)awakeFromNib
+{
     if (self.contentViewStoryboardID) {
         self.contentViewController = [self.storyboard instantiateViewControllerWithIdentifier:self.contentViewStoryboardID];
     }
@@ -85,7 +89,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 }
 #endif
 
-- (void)commonInit {
+- (void)commonInit
+{
     _menuViewContainer = [[UIView alloc] init];
     _contentViewContainer = [[UIView alloc] init];
 
@@ -128,7 +133,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 #pragma mark -
 #pragma mark Public methods
 
-- (id)initWithContentViewController:(UIViewController *)contentViewController leftMenuViewController:(UIViewController *)leftMenuViewController rightMenuViewController:(UIViewController *)rightMenuViewController {
+- (id)initWithContentViewController:(UIViewController *)contentViewController leftMenuViewController:(UIViewController *)leftMenuViewController rightMenuViewController:(UIViewController *)rightMenuViewController
+{
     self = [self init];
     if (self) {
         _contentViewController = contentViewController;
@@ -138,21 +144,25 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     return self;
 }
 
-- (void)presentLeftMenuViewController {
+- (void)presentLeftMenuViewController
+{
     [self presentMenuViewContainerWithMenuViewController:self.leftMenuViewController];
     [self showLeftMenuViewController];
 }
 
-- (void)presentRightMenuViewController {
+- (void)presentRightMenuViewController
+{
     [self presentMenuViewContainerWithMenuViewController:self.rightMenuViewController];
     [self showRightMenuViewController];
 }
 
-- (void)hideMenuViewController {
+- (void)hideMenuViewController
+{
     [self hideMenuViewControllerAnimated:YES];
 }
 
-- (void)setContentViewController:(UIViewController *)contentViewController animated:(BOOL)animated {
+- (void)setContentViewController:(UIViewController *)contentViewController animated:(BOOL)animated
+{
     if (_contentViewController == contentViewController) {
         return;
     }
@@ -183,7 +193,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark View life cycle
 
-- (void)viewDidLoad {
+- (void)viewDidLoad
+{
     [super viewDidLoad];
 
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -247,11 +258,13 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     [self updateContentViewShadow];
 }
 
-- (BOOL)shouldAutomaticallyForwardAppearanceMethods {
+- (BOOL)shouldAutomaticallyForwardAppearanceMethods
+{
     return NO;
 }
 
-- (void)viewWillAppear:(BOOL)animated {
+- (void)viewWillAppear:(BOOL)animated
+{
     [super viewWillAppear:animated];
     if (self.leftMenuVisible) {
         [self.leftMenuViewController beginAppearanceTransition:YES animated:animated];
@@ -262,7 +275,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
-- (void)viewDidAppear:(BOOL)animated {
+- (void)viewDidAppear:(BOOL)animated
+{
     [super viewDidAppear:animated];
     if (self.leftMenuVisible) {
         [self.leftMenuViewController endAppearanceTransition];
@@ -273,7 +287,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
-- (void)viewWillDisappear:(BOOL)animated {
+- (void)viewWillDisappear:(BOOL)animated
+{
     [super viewWillDisappear:animated];
     if (self.leftMenuVisible) {
         [self.leftMenuViewController beginAppearanceTransition:NO animated:animated];
@@ -284,7 +299,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
+- (void)viewDidDisappear:(BOOL)animated
+{
     [super viewDidDisappear:animated];
     if (self.leftMenuVisible) {
         [self.leftMenuViewController endAppearanceTransition];
@@ -308,7 +324,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
  *
  *  @return The rendered image with specified transparent edges.
  */
-- (UIImage *)renderImageFromView:(UIView *)view withRect:(CGRect)frame transparentInsets:(UIEdgeInsets)insets {
+- (UIImage *)renderImageFromView:(UIView *)view withRect:(CGRect)frame transparentInsets:(UIEdgeInsets)insets
+{
     CGSize imageSizeWithBorder = CGSizeMake(frame.size.width + insets.left + insets.right, frame.size.height + insets.top + insets.bottom);
 
     UIGraphicsBeginImageContextWithOptions(imageSizeWithBorder, UIEdgeInsetsEqualToEdgeInsets(insets, UIEdgeInsetsZero), 0);
@@ -333,7 +350,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
  *
  *  @return The rendered image with specified transparent edges.
  */
-- (UIImage *)renderImageForAntialiasing:(UIImage *)image withTransparentInsets:(UIEdgeInsets)insets {
+- (UIImage *)renderImageForAntialiasing:(UIImage *)image withTransparentInsets:(UIEdgeInsets)insets
+{
     CGSize imageSizeWithBorder = CGSizeMake([image size].width + insets.left + insets.right, [image size].height + insets.top + insets.bottom);
     UIGraphicsBeginImageContextWithOptions(imageSizeWithBorder, UIEdgeInsetsEqualToEdgeInsets(insets, UIEdgeInsetsZero), 0);
     [image drawInRect:(CGRect){{insets.left, insets.top}, [image size]}];
@@ -342,7 +360,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     return renderedImage;
 }
 
-- (void)buildLayersForAnimation {
+- (void)buildLayersForAnimation
+{
     UIView *contentView = self.contentViewContainer;
     UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
 
@@ -374,7 +393,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     [self createShadowLayer];
 }
 
-- (void)createShadowLayer {
+- (void)createShadowLayer
+{
     CAGradientLayer *shadowLayer = [[CAGradientLayer alloc] init];
     shadowLayer.frame = self.perspectiveAnimationLayer.frame;
     shadowLayer.startPoint = CGPointMake(0.0, 0.5);
@@ -386,7 +406,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     [self.perspectiveAnimationLayer addSublayer:self.perspectiveShadowLayer];
 }
 
-- (void)buildLayerForGestureInteraction {
+- (void)buildLayerForGestureInteraction
+{
     UIView *contentView = self.contentViewContainer;
     UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
     
@@ -416,7 +437,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     contentView.layer.sublayerTransform = transform;
 }
 
-- (void)cleanupAnimationLayer {
+- (void)cleanupAnimationLayer
+{
     [self.perspectiveAnimationLayer removeFromSuperlayer];
     self.perspectiveAnimationLayer = nil;
     [self.perspectiveShadowLayer removeFromSuperlayer];
@@ -429,7 +451,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark - Private methods
 
-- (void)presentMenuViewContainerWithMenuViewController:(UIViewController *)menuViewController {
+- (void)presentMenuViewContainerWithMenuViewController:(UIViewController *)menuViewController
+{
     self.menuViewContainer.transform = CGAffineTransformIdentity;
     if (self.scaleBackgroundImageView) {
         self.backgroundImageView.transform = CGAffineTransformIdentity;
@@ -448,7 +471,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
--(void)showMenuControllerFromDirection:(RESideMenuControllerDirection)menuDirection {
+-(void)showMenuControllerFromDirection:(RESideMenuControllerDirection)menuDirection
+{
     if(menuDirection == RESideMenuControllerDirectionLeft) {
         self.leftMenuViewController.view.hidden = NO;
         self.rightMenuViewController.view.hidden = YES;
@@ -545,21 +569,25 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     [self statusBarNeedsAppearanceUpdate];
 }
 
-- (void)showRightMenuViewController {
+- (void)showRightMenuViewController
+{
     [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight];
 }
 
-- (void)showLeftMenuViewController {
+- (void)showLeftMenuViewController
+{
     [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft];
 }
 
-- (void)hideViewController:(UIViewController *)viewController {
+- (void)hideViewController:(UIViewController *)viewController
+{
     [viewController willMoveToParentViewController:nil];
     [viewController.view removeFromSuperview];
     [viewController removeFromParentViewController];
 }
 
-- (void)hideMenuViewControllerAnimated:(BOOL)animated {
+- (void)hideMenuViewControllerAnimated:(BOOL)animated
+{
     BOOL isHidingRightMenu = self.rightMenuVisible;
     if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willHideMenuViewController:)]) {
         [self.delegate sideMenu:self willHideMenuViewController:isHidingRightMenu ? self.rightMenuViewController : self.leftMenuViewController];
@@ -655,7 +683,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     [self statusBarNeedsAppearanceUpdate];
 }
 
-- (void)addContentButton {
+- (void)addContentButton
+{
     if (self.contentButton.superview)
         return;
 
@@ -665,7 +694,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     [self.contentViewContainer addSubview:self.contentButton];
 }
 
-- (void)statusBarNeedsAppearanceUpdate {
+- (void)statusBarNeedsAppearanceUpdate
+{
     if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
         [UIView animateWithDuration:0.3f animations:^{
             [self performSelector:@selector(setNeedsStatusBarAppearanceUpdate)];
@@ -673,7 +703,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
-- (void)updateContentViewShadow {
+- (void)updateContentViewShadow
+{
     if (self.contentViewShadowEnabled) {
         CALayer *layer = self.contentViewContainer.layer;
         UIBezierPath *path = [UIBezierPath bezierPathWithRect:layer.bounds];
@@ -685,7 +716,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
-- (void)resetContentViewScale {
+- (void)resetContentViewScale
+{
     CGAffineTransform t = self.contentViewContainer.transform;
     CGFloat scale = sqrt(t.a * t.a + t.c * t.c);
     CGRect frame = self.contentViewContainer.frame;
@@ -696,7 +728,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark - iOS 7 Motion Effects (Private)
 
-- (void)addMenuViewControllerMotionEffects {
+- (void)addMenuViewControllerMotionEffects
+{
     if (self.parallaxEnabled) {
         IF_IOS7_OR_GREATER(
             for (UIMotionEffect *effect in self.menuViewContainer.motionEffects) {
@@ -714,7 +747,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
-- (void)addContentViewControllerMotionEffects {
+- (void)addContentViewControllerMotionEffects
+{
     if (self.parallaxEnabled) {
         IF_IOS7_OR_GREATER(
             for (UIMotionEffect *effect in self.contentViewContainer.motionEffects) {
@@ -737,7 +771,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark - UIGestureRecognizer Delegate (Private)
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
     IF_IOS7_OR_GREATER(
         if (self.interactivePopGestureRecognizerEnabled && [self.contentViewController isKindOfClass:[UINavigationController class]]) {
            UINavigationController *navigationController = (UINavigationController *)self.contentViewController;
@@ -760,7 +795,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark - Pan gesture recognizer (Private)
 
-- (void)panGestureRecognized:(UIPanGestureRecognizer *)recognizer {
+- (void)panGestureRecognized:(UIPanGestureRecognizer *)recognizer
+{
     if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didRecognizePanGesture:)])
         [self.delegate sideMenu:self didRecognizePanGesture:recognizer];
 
@@ -928,13 +964,15 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark - Setters
 
-- (void)setBackgroundImage:(UIImage *)backgroundImage {
+- (void)setBackgroundImage:(UIImage *)backgroundImage
+{
     _backgroundImage = backgroundImage;
     if (self.backgroundImageView)
         self.backgroundImageView.image = backgroundImage;
 }
 
-- (void)setContentViewController:(UIViewController *)contentViewController {
+- (void)setContentViewController:(UIViewController *)contentViewController
+{
     if (!_contentViewController) {
         _contentViewController = contentViewController;
         return;
@@ -954,7 +992,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     }
 }
 
-- (void)setLeftMenuViewController:(UIViewController *)leftMenuViewController {
+- (void)setLeftMenuViewController:(UIViewController *)leftMenuViewController
+{
     if (!_leftMenuViewController) {
         _leftMenuViewController = leftMenuViewController;
         return;
@@ -972,7 +1011,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     [self.view bringSubviewToFront:self.contentViewContainer];
 }
 
-- (void)setRightMenuViewController:(UIViewController *)rightMenuViewController {
+- (void)setRightMenuViewController:(UIViewController *)rightMenuViewController
+{
     if (!_rightMenuViewController) {
         _rightMenuViewController = rightMenuViewController;
         return;
@@ -992,11 +1032,13 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark - View Controller Rotation handler
 
-- (BOOL)shouldAutorotate {
+- (BOOL)shouldAutorotate
+{
     return self.contentViewController.shouldAutorotate;
 }
 
-- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
     if (self.visible) {
         self.menuViewContainer.bounds = self.view.bounds;
         self.contentViewContainer.transform = CGAffineTransformIdentity;
@@ -1027,7 +1069,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
 
 #pragma mark - Status Bar Appearance Management
 
-- (UIStatusBarStyle)preferredStatusBarStyle {
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
     UIStatusBarStyle statusBarStyle = UIStatusBarStyleDefault;
     IF_IOS7_OR_GREATER(
         statusBarStyle = self.visible ? self.menuPreferredStatusBarStyle : self.contentViewController.preferredStatusBarStyle;
@@ -1039,7 +1082,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     return statusBarStyle;
 }
 
-- (BOOL)prefersStatusBarHidden {
+- (BOOL)prefersStatusBarHidden
+{
     BOOL statusBarHidden = NO;
     IF_IOS7_OR_GREATER(
         statusBarHidden = self.visible ? self.menuPrefersStatusBarHidden : self.contentViewController.prefersStatusBarHidden;
@@ -1051,7 +1095,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
     return statusBarHidden;
 }
 
-- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
+- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation
+{
     UIStatusBarAnimation statusBarAnimation = UIStatusBarAnimationNone;
     IF_IOS7_OR_GREATER(
         statusBarAnimation = self.visible ? self.leftMenuViewController.preferredStatusBarUpdateAnimation : self.contentViewController.preferredStatusBarUpdateAnimation;
