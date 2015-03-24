@@ -23,6 +23,7 @@
 		3076CE0E1809B5C500527E6C /* RESideMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE0A1809B5C500527E6C /* RESideMenuController.m */; };
 		3076CE0F1809B5C500527E6C /* UIViewController+RESideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 3076CE0C1809B5C500527E6C /* UIViewController+RESideMenu.m */; };
 		30DF13B218DE1B0C0018463C /* DEMORightMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 30DF13B118DE1B0C0018463C /* DEMORightMenuViewController.m */; };
+		B3AB37BA1AB99E9900538EC0 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AB37B91AB99E9900538EC0 /* QuartzCore.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +56,7 @@
 		3076CE0C1809B5C500527E6C /* UIViewController+RESideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+RESideMenu.m"; sourceTree = "<group>"; };
 		30DF13B018DE1B0C0018463C /* DEMORightMenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DEMORightMenuViewController.h; sourceTree = "<group>"; };
 		30DF13B118DE1B0C0018463C /* DEMORightMenuViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DEMORightMenuViewController.m; sourceTree = "<group>"; };
+		B3AB37B91AB99E9900538EC0 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +64,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B3AB37BA1AB99E9900538EC0 /* QuartzCore.framework in Frameworks */,
 				3076CDC41809B47200527E6C /* CoreGraphics.framework in Frameworks */,
 				3076CDC61809B47200527E6C /* UIKit.framework in Frameworks */,
 				3076CDC21809B47200527E6C /* Foundation.framework in Frameworks */,
@@ -92,6 +95,7 @@
 		3076CDC01809B47200527E6C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B3AB37B91AB99E9900538EC0 /* QuartzCore.framework */,
 				3076CDC11809B47200527E6C /* Foundation.framework */,
 				3076CDC31809B47200527E6C /* CoreGraphics.framework */,
 				3076CDC51809B47200527E6C /* UIKit.framework */,
