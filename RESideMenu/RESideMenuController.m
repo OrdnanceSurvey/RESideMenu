@@ -28,6 +28,11 @@
 #import "RECommonFunctions.h"
 #import <QuartzCore/QuartzCore.h>
 
+typedef NS_ENUM(NSInteger, RESideMenuControllerDirection) {
+    RESideMenuControllerDirectionLeft,
+    RESideMenuControllerDirectionRight
+};
+
 @interface RESideMenuController ()
 
 @property (strong, readwrite, nonatomic) UIImageView *backgroundImageView;
@@ -443,21 +448,25 @@
     }
 }
 
--(void)animateMenuControllerAppearanceLeft:(bool)isLeft {
-    self.leftMenuViewController.view.hidden = !isLeft;
-    self.rightMenuViewController.view.hidden = isLeft;
+-(void)showMenuControllerFromDirection:(RESideMenuControllerDirection)menuDirection {
+    if(menuDirection == RESideMenuControllerDirectionLeft) {
+        self.leftMenuViewController.view.hidden = NO;
+        self.rightMenuViewController.view.hidden = YES;
+    } else {
+        self.leftMenuViewController.view.hidden = YES;
+        self.rightMenuViewController.view.hidden = NO;
+    }
+    
     [self.view.window endEditing:YES];
-    
     [self buildLayersForAnimation];
-    
     [self addContentButton];
     [self updateContentViewShadow];
     [self resetContentViewScale];
     [self.leftMenuViewController beginAppearanceTransition:YES animated:YES];
     [self.contentViewController beginAppearanceTransition:NO animated:YES];
     
-    if(!isLeft) {
-            [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
+    if(menuDirection == RESideMenuControllerDirectionRight) {
+        [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
     }
     
     [UIView animateWithDuration:self.animationDuration animations:^{
@@ -468,7 +477,7 @@
         }
         
         if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
-            if(isLeft) {
+            if(menuDirection == RESideMenuControllerDirectionLeft) {
                 self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? self.contentViewInLandscapeOffsetCenterX + CGRectGetWidth(self.view.frame) : self.contentViewInPortraitOffsetCenterX + CGRectGetWidth(self.view.frame)), self.contentViewContainer.center.y);
             } else {
                 self.contentViewContainer.center = CGPointMake((UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ? -self.contentViewInLandscapeOffsetCenterX : -self.contentViewInPortraitOffsetCenterX), self.contentViewContainer.center.y);
@@ -485,18 +494,18 @@
         }
         
     } completion:^(BOOL finished) {
-        if(isLeft) {
+        if(menuDirection == RESideMenuControllerDirectionLeft) {
             [self addContentViewControllerMotionEffects];
         }
         
         if (!self.visible && [self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:didShowMenuViewController:)]) {
-            if(isLeft) {
+            if(menuDirection == RESideMenuControllerDirectionLeft) {
                 [self.delegate sideMenu:self didShowMenuViewController:self.leftMenuViewController];
             } else {
                 [self.delegate sideMenu:self didShowMenuViewController:self.rightMenuViewController];
             }
         }
-        if(!isLeft) {
+        if(menuDirection == RESideMenuControllerDirectionRight) {
             self.visible = !(self.contentViewContainer.frame.size.width == self.view.bounds.size.width && self.contentViewContainer.frame.size.height == self.view.bounds.size.height && self.contentViewContainer.frame.origin.x == 0 && self.contentViewContainer.frame.origin.y == 0);
             self.rightMenuVisible = self.visible;
             [[UIApplication sharedApplication] endIgnoringInteractionEvents];
@@ -513,7 +522,7 @@
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
     animation.fromValue = @0.0;
     
-    if(isLeft) {
+    if(menuDirection == RESideMenuControllerDirectionLeft) {
         animation.toValue = @(self.perspectiveRotationAmountRadians);
     } else {
         animation.toValue = @(-self.perspectiveRotationAmountRadians);
@@ -537,11 +546,11 @@
 }
 
 - (void)showRightMenuViewController {
-    [self animateMenuControllerAppearanceLeft:NO];
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight];
 }
 
 - (void)showLeftMenuViewController {
-    [self animateMenuControllerAppearanceLeft:YES];
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft];
 }
 
 - (void)hideViewController:(UIViewController *)viewController {
