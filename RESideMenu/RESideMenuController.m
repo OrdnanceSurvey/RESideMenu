@@ -447,7 +447,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     }
 }
 
--(void)showMenuControllerFromDirection:(RESideMenuControllerDirection)menuDirection withStartingTransform:(CATransform3D)transform
+-(void)showMenuControllerFromDirection:(RESideMenuControllerDirection)menuDirection
 {
     if(menuDirection == RESideMenuControllerDirectionLeft) {
         self.leftMenuViewController.view.hidden = NO;
@@ -545,6 +545,23 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:@"opacity"];
     
     [self statusBarNeedsAppearanceUpdate];
+}
+
+- (void)showRightMenuViewController
+{
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight];
+}
+
+- (void)showLeftMenuViewController
+{
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft];
+}
+
+- (void)hideViewController:(UIViewController *)viewController
+{
+    [viewController willMoveToParentViewController:nil];
+    [viewController.view removeFromSuperview];
+    [viewController removeFromParentViewController];
 }
 
 - (void)hideMenuViewControllerAnimated:(BOOL)animated
@@ -645,6 +662,116 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     [CATransaction commit];
 
     [self statusBarNeedsAppearanceUpdate];
+}
+
+- (void)addContentButton
+{
+    if (self.contentButton.superview)
+        return;
+
+    self.contentButton.autoresizingMask = UIViewAutoresizingNone;
+    self.contentButton.frame = self.contentViewContainer.bounds;
+    self.contentButton.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.contentViewContainer addSubview:self.contentButton];
+}
+
+- (void)statusBarNeedsAppearanceUpdate
+{
+    if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
+        [UIView animateWithDuration:0.3f animations:^{
+            [self performSelector:@selector(setNeedsStatusBarAppearanceUpdate)];
+        }];
+    }
+}
+
+- (void)updateContentViewShadow
+{
+    if (self.contentViewShadowEnabled) {
+        CALayer *layer = self.contentViewContainer.layer;
+        UIBezierPath *path = [UIBezierPath bezierPathWithRect:layer.bounds];
+        layer.shadowPath = path.CGPath;
+        layer.shadowColor = self.contentViewShadowColor.CGColor;
+        layer.shadowOffset = self.contentViewShadowOffset;
+        layer.shadowOpacity = self.contentViewShadowOpacity;
+        layer.shadowRadius = self.contentViewShadowRadius;
+    }
+}
+
+- (void)resetContentViewScale
+{
+    CGAffineTransform t = self.contentViewContainer.transform;
+    CGFloat scale = sqrt(t.a * t.a + t.c * t.c);
+    CGRect frame = self.contentViewContainer.frame;
+    self.contentViewContainer.transform = CGAffineTransformIdentity;
+    self.contentViewContainer.transform = CGAffineTransformMakeScale(scale, scale);
+    self.contentViewContainer.frame = frame;
+}
+
+#pragma mark - iOS 7 Motion Effects (Private)
+
+- (void)addMenuViewControllerMotionEffects
+{
+    if (self.parallaxEnabled) {
+        IF_IOS7_OR_GREATER(
+                           for (UIMotionEffect *effect in self.menuViewContainer.motionEffects) {
+                               [self.menuViewContainer removeMotionEffect:effect];
+                           } UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+                           interpolationHorizontal.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
+                           interpolationHorizontal.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
+
+                           UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+                           interpolationVertical.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
+                           interpolationVertical.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
+
+                           [self.menuViewContainer addMotionEffect:interpolationHorizontal];
+                           [self.menuViewContainer addMotionEffect:interpolationVertical];);
+    }
+}
+
+- (void)addContentViewControllerMotionEffects
+{
+    if (self.parallaxEnabled) {
+        IF_IOS7_OR_GREATER(
+                           for (UIMotionEffect *effect in self.contentViewContainer.motionEffects) {
+                               [self.contentViewContainer removeMotionEffect:effect];
+                           }
+                           [UIView animateWithDuration:0.2 animations:^{
+            UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+            interpolationHorizontal.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
+            interpolationHorizontal.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
+
+            UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+            interpolationVertical.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
+            interpolationVertical.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
+
+            [self.contentViewContainer addMotionEffect:interpolationHorizontal];
+            [self.contentViewContainer addMotionEffect:interpolationVertical];
+        }];);
+    }
+}
+
+#pragma mark - UIGestureRecognizer Delegate (Private)
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    IF_IOS7_OR_GREATER(
+                       if (self.interactivePopGestureRecognizerEnabled && [self.contentViewController isKindOfClass:[UINavigationController class]]) {
+                           UINavigationController *navigationController = (UINavigationController *)self.contentViewController;
+                           if (navigationController.viewControllers.count > 1 && navigationController.interactivePopGestureRecognizer.enabled) {
+                               return NO;
+                           }
+                       });
+
+    if (self.panFromEdge && [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] && !self.visible) {
+        CGPoint point = [touch locationInView:gestureRecognizer.view];
+        if (point.x < 20.0 || point.x > self.view.frame.size.width - 20.0) {
+            return YES;
+        } else {
+            return NO;
+        }
+    }
+    
+    return YES;
 }
 
 #pragma mark - Pan gesture recognizer (Private)
@@ -829,135 +956,6 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         }
     }
 }
-
-- (void)showRightMenuViewController
-{
-    [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight withStartingTransform:CATransform3DIdentity];
-}
-
-- (void)showLeftMenuViewController
-{
-    [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft withStartingTransform:CATransform3DIdentity];
-}
-
-- (void)hideViewController:(UIViewController *)viewController
-{
-    [viewController willMoveToParentViewController:nil];
-    [viewController.view removeFromSuperview];
-    [viewController removeFromParentViewController];
-}
-
-- (void)addContentButton
-{
-    if (self.contentButton.superview)
-        return;
-
-    self.contentButton.autoresizingMask = UIViewAutoresizingNone;
-    self.contentButton.frame = self.contentViewContainer.bounds;
-    self.contentButton.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.contentViewContainer addSubview:self.contentButton];
-}
-
-- (void)statusBarNeedsAppearanceUpdate
-{
-    if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
-        [UIView animateWithDuration:0.3f animations:^{
-            [self performSelector:@selector(setNeedsStatusBarAppearanceUpdate)];
-        }];
-    }
-}
-
-- (void)updateContentViewShadow
-{
-    if (self.contentViewShadowEnabled) {
-        CALayer *layer = self.contentViewContainer.layer;
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:layer.bounds];
-        layer.shadowPath = path.CGPath;
-        layer.shadowColor = self.contentViewShadowColor.CGColor;
-        layer.shadowOffset = self.contentViewShadowOffset;
-        layer.shadowOpacity = self.contentViewShadowOpacity;
-        layer.shadowRadius = self.contentViewShadowRadius;
-    }
-}
-
-- (void)resetContentViewScale
-{
-    CGAffineTransform t = self.contentViewContainer.transform;
-    CGFloat scale = sqrt(t.a * t.a + t.c * t.c);
-    CGRect frame = self.contentViewContainer.frame;
-    self.contentViewContainer.transform = CGAffineTransformIdentity;
-    self.contentViewContainer.transform = CGAffineTransformMakeScale(scale, scale);
-    self.contentViewContainer.frame = frame;
-}
-
-#pragma mark - iOS 7 Motion Effects (Private)
-
-- (void)addMenuViewControllerMotionEffects
-{
-    if (self.parallaxEnabled) {
-        IF_IOS7_OR_GREATER(
-                           for (UIMotionEffect *effect in self.menuViewContainer.motionEffects) {
-                               [self.menuViewContainer removeMotionEffect:effect];
-                           } UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
-                           interpolationHorizontal.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
-                           interpolationHorizontal.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
-
-                           UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
-                           interpolationVertical.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
-                           interpolationVertical.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
-
-                           [self.menuViewContainer addMotionEffect:interpolationHorizontal];
-                           [self.menuViewContainer addMotionEffect:interpolationVertical];);
-    }
-}
-
-- (void)addContentViewControllerMotionEffects
-{
-    if (self.parallaxEnabled) {
-        IF_IOS7_OR_GREATER(
-                           for (UIMotionEffect *effect in self.contentViewContainer.motionEffects) {
-                               [self.contentViewContainer removeMotionEffect:effect];
-                           }
-                           [UIView animateWithDuration:0.2 animations:^{
-            UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
-            interpolationHorizontal.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
-            interpolationHorizontal.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
-
-            UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
-            interpolationVertical.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
-            interpolationVertical.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
-
-            [self.contentViewContainer addMotionEffect:interpolationHorizontal];
-            [self.contentViewContainer addMotionEffect:interpolationVertical];
-        }];);
-    }
-}
-
-#pragma mark - UIGestureRecognizer Delegate (Private)
-
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
-{
-    IF_IOS7_OR_GREATER(
-                       if (self.interactivePopGestureRecognizerEnabled && [self.contentViewController isKindOfClass:[UINavigationController class]]) {
-                           UINavigationController *navigationController = (UINavigationController *)self.contentViewController;
-                           if (navigationController.viewControllers.count > 1 && navigationController.interactivePopGestureRecognizer.enabled) {
-                               return NO;
-                           }
-                       });
-
-    if (self.panFromEdge && [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] && !self.visible) {
-        CGPoint point = [touch locationInView:gestureRecognizer.view];
-        if (point.x < 20.0 || point.x > self.view.frame.size.width - 20.0) {
-            return YES;
-        } else {
-            return NO;
-        }
-    }
-    
-    return YES;
-}
-
-
 
 #pragma mark - Setters
 
