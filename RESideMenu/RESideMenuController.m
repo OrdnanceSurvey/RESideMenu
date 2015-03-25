@@ -541,7 +541,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     shadowAnimation.fromValue = [(NSNumber *)self.perspectiveShadowLayer valueForKeyPath:@"opacity"];
     shadowAnimation.toValue = @(self.perspectiveShadowOpacity);
     shadowAnimation.duration = self.animationDuration;
-    self.perspectiveShadowLayer.opacity = [shadowAnimation.toValue floatValue];
+    self.perspectiveShadowLayer.opacity = self.perspectiveShadowOpacity;
     [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:@"opacity"];
     
     [self statusBarNeedsAppearanceUpdate];
@@ -674,8 +674,6 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         [self addContentButton];
         [self.view.window endEditing:YES];
         self.didNotifyDelegate = NO;
-        
-        //[self buildLayersForGestureInteraction];
     }
 
     if (recognizer.state == UIGestureRecognizerStateChanged) {
@@ -770,7 +768,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         }
         
         //3d rotation
-        float fractionFromLeftEdge = self.contentViewContainer.frame.origin.x / self.view.frame.size.width;
+        float fractionFromLeftEdge = 1 - (fabs(point.x) / (self.view.frame.size.width - self.contentViewContainer.frame.size.width/2));
         float angle = self.perspectiveRotationAmountRadians * fractionFromLeftEdge;
         [CATransaction begin];
         {
@@ -784,9 +782,10 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
             CABasicAnimation *opacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
             float fromOpacityValue = self.perspectiveShadowLayer.opacity;
             opacityAnimation.fromValue = @(fromOpacityValue);
-            opacityAnimation.toValue = @(fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity);
+            float opacityToValue = fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity;
+            opacityAnimation.toValue = @(opacityToValue);
             opacityAnimation.duration = 0;
-            self.perspectiveShadowLayer.opacity = fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity;
+            self.perspectiveShadowLayer.opacity = opacityToValue;
             [self.perspectiveShadowLayer addAnimation:opacityAnimation forKey:@"opacity"];
         } [CATransaction commit];
 
