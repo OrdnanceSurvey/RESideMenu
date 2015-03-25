@@ -162,7 +162,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 }
 
 -(UIImage *)contentViewImageSnapshot {
-    if(!_contentViewImageSnapshot) {
+    if (!_contentViewImageSnapshot) {
         UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
         _contentViewImageSnapshot = [self renderImageFromView:self.contentViewContainer withRect:self.contentViewContainer.bounds transparentInsets:edgeInsets];
     }
@@ -538,7 +538,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     
     // Perspective shadow animation
     CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    shadowAnimation.fromValue = [(NSNumber *)self.perspectiveShadowLayer valueForKeyPath:@"opacity"];
+    shadowAnimation.fromValue = (NSNumber *)[self.perspectiveShadowLayer valueForKeyPath:@"opacity"];
     shadowAnimation.toValue = @(self.perspectiveShadowOpacity);
     shadowAnimation.duration = self.animationDuration;
     self.perspectiveShadowLayer.opacity = self.perspectiveShadowOpacity;
@@ -631,9 +631,9 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 
     NSNumber *rotationFromValue = @(0.0);
     if (isHidingRightMenu) {
-            rotationFromValue = @(-self.perspectiveRotationAmountRadians);
+        rotationFromValue = @(-self.perspectiveRotationAmountRadians);
     } else {
-            rotationFromValue = @(self.perspectiveRotationAmountRadians);
+        rotationFromValue = @(self.perspectiveRotationAmountRadians);
     }
 
     // Reverse perspective rotation and shadow animations
@@ -645,7 +645,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
             self.contentViewImageSnapshot = nil;
         }];
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
-        animation.fromValue = [(NSNumber *)self.perspectiveAnimationLayer valueForKeyPath:@"transform.rotation.y"];
+        animation.fromValue = (NSNumber *)[self.perspectiveAnimationLayer valueForKeyPath:@"transform.rotation.y"];
         animation.toValue = @0.0;
         animation.duration = self.animationDuration;
         [self.perspectiveAnimationLayer setValue:@0.0 forKeyPath:@"transform.rotation.y"];
@@ -811,7 +811,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         } else {
             delta = point.x / self.view.frame.size.width;
         }
-        delta = MIN(fabs(delta), 1.6);
+        delta = MIN(fabsf(delta), 1.6);
 
         CGFloat contentViewScale = self.scaleContentView ? 1 - ((1 - self.contentViewScaleValue) * delta) : 1;
 
@@ -896,7 +896,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         }
         
         //3d rotation
-        float fractionFromLeftEdge = 1 - (fabs(point.x) / (self.view.frame.size.width - self.contentViewContainer.frame.size.width/2));
+        float fractionFromLeftEdge = 1 - (fabsf(point.x) / (self.view.frame.size.width - self.contentViewContainer.frame.size.width/2));
         float angle = self.perspectiveRotationAmountRadians * fractionFromLeftEdge;
         [CATransaction begin];
         {
@@ -910,7 +910,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
             CABasicAnimation *opacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
             float fromOpacityValue = self.perspectiveShadowLayer.opacity;
             opacityAnimation.fromValue = @(fromOpacityValue);
-            float opacityToValue = fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity;
+            float opacityToValue = fabsf(fractionFromLeftEdge) * self.perspectiveShadowOpacity;
             opacityAnimation.toValue = @(opacityToValue);
             opacityAnimation.duration = 0;
             self.perspectiveShadowLayer.opacity = opacityToValue;
