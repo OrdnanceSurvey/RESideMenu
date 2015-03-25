@@ -48,6 +48,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 @property (strong, nonatomic) CALayer *perspectiveAnimationLayer;
 @property (strong, nonatomic) CALayer *perspectiveShadowLayer;
 @property (strong, nonatomic) CALayer *perspectiveGestureInteractionLayer;
+@property (strong, nonatomic) CALayer *perspectiveGestureInteractionShadowLayer;
 
 @end
 
@@ -388,12 +389,20 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     // to the height of the original view being transformed for best effect.
     CATransform3D transform = CATransform3DIdentity;
     transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
+
+    //If the animation has been triggered from a pan gesture, start from there
+    if(self.perspectiveGestureInteractionLayer != nil) {
+        transform = self.perspectiveGestureInteractionLayer.transform;
+    }
+
     contentView.layer.sublayerTransform = transform;
 
-    [self createShadowLayer];
+    self.perspectiveShadowLayer = [self createShadowLayer];
+    [self.perspectiveAnimationLayer addSublayer:self.perspectiveShadowLayer];
+
 }
 
-- (void)createShadowLayer
+- (CALayer *)createShadowLayer
 {
     CAGradientLayer *shadowLayer = [[CAGradientLayer alloc] init];
     shadowLayer.frame = self.perspectiveAnimationLayer.frame;
@@ -402,11 +411,10 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     shadowLayer.opacity = 0.5f;
 
     shadowLayer.colors = @[ (id)[UIColor clearColor].CGColor, (id)[UIColor blackColor].CGColor, (id)[UIColor blackColor].CGColor ];
-    self.perspectiveShadowLayer = shadowLayer;
-    [self.perspectiveAnimationLayer addSublayer:self.perspectiveShadowLayer];
+    return shadowLayer;
 }
 
-- (void)buildLayerForGestureInteraction
+- (void)buildLayersForGestureInteraction
 {
     UIView *contentView = self.contentViewContainer;
     UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
@@ -423,10 +431,13 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     animationLayer.anchorPoint = CGPointZero;
     animationLayer.position = self.perspectiveAnimationLayer.frame.origin;
     animationLayer.contents = (id)contentViewSnapshot.CGImage;
+    animationLayer.transform = self.perspectiveAnimationLayer.transform;
     [animationLayer setMasksToBounds:YES];
     animationLayer.cornerRadius = 6.0f;
     
     self.perspectiveGestureInteractionLayer = animationLayer;
+
+    [self cleanupAnimationLayers];
     [self.contentViewContainer.layer addSublayer:self.perspectiveGestureInteractionLayer];
     [self.contentViewController.view setHidden:YES];
     
@@ -435,18 +446,27 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     CATransform3D transform = CATransform3DIdentity;
     transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
     contentView.layer.sublayerTransform = transform;
+
+    self.perspectiveGestureInteractionShadowLayer = [self createShadowLayer];
+    [self.perspectiveGestureInteractionLayer addSublayer:self.perspectiveGestureInteractionShadowLayer];
 }
 
-- (void)cleanupAnimationLayer
+- (void)cleanupAnimationLayers
 {
     [self.perspectiveAnimationLayer removeFromSuperlayer];
     self.perspectiveAnimationLayer = nil;
     [self.perspectiveShadowLayer removeFromSuperlayer];
     self.perspectiveShadowLayer = nil;
+
+    [self.contentViewController.view setHidden:NO];
+}
+
+-(void)cleanupGestureInteractionLayers {
     [self.perspectiveGestureInteractionLayer removeFromSuperlayer];
     self.perspectiveGestureInteractionLayer = nil;
-    
-    [self.contentViewController.view setHidden:NO];
+
+    [self.perspectiveGestureInteractionShadowLayer removeFromSuperlayer];
+    self.perspectiveGestureInteractionShadowLayer = nil;
 }
 
 #pragma mark - Private methods
@@ -482,7 +502,9 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     }
     
     [self.view.window endEditing:YES];
+    [self cleanupAnimationLayers];
     [self buildLayersForAnimation];
+    [self cleanupGestureInteractionLayers];
     [self addContentButton];
     [self updateContentViewShadow];
     [self resetContentViewScale];
@@ -544,7 +566,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
-    animation.fromValue = @0.0;
+
+    animation.fromValue = [(NSNumber *)self.perspectiveAnimationLayer valueForKeyPath:@"transform.rotation.y"];
     
     if(menuDirection == RESideMenuControllerDirectionLeft) {
         animation.toValue = @(self.perspectiveRotationAmountRadians);
@@ -559,7 +582,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     
     // Perspective shadow animation
     CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    shadowAnimation.fromValue = @0.0;
+    shadowAnimation.fromValue = [(NSNumber *)self.perspectiveShadowLayer valueForKeyPath:@"opacity"];
     shadowAnimation.toValue = @(self.perspectiveShadowOpacity);
     shadowAnimation.fillMode = kCAFillModeForwards;
     shadowAnimation.duration = self.animationDuration;
@@ -588,6 +611,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 
 - (void)hideMenuViewControllerAnimated:(BOOL)animated
 {
+    [self cleanupGestureInteractionLayers];
     BOOL isHidingRightMenu = self.rightMenuVisible;
     if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willHideMenuViewController:)]) {
         [self.delegate sideMenu:self willHideMenuViewController:isHidingRightMenu ? self.rightMenuViewController : self.leftMenuViewController];
@@ -655,10 +679,11 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     [CATransaction begin];
     {
         [CATransaction setCompletionBlock:^{
-            [self cleanupAnimationLayer];
+            [self cleanupAnimationLayers];
         }];
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
         if (isHidingRightMenu) {
+
             animation.fromValue = @(-self.perspectiveRotationAmountRadians);
         } else {
             animation.fromValue = @(self.perspectiveRotationAmountRadians);
@@ -821,7 +846,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         [self.view.window endEditing:YES];
         self.didNotifyDelegate = NO;
         
-        [self buildLayerForGestureInteraction];
+        [self buildLayersForGestureInteraction];
     }
 
     if (recognizer.state == UIGestureRecognizerStateChanged) {
@@ -919,12 +944,11 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         float fractionFromLeftEdge = self.contentViewContainer.frame.origin.x / self.view.frame.size.width;
         float angle = self.perspectiveRotationAmountRadians * fractionFromLeftEdge;
         
-        [CATransaction begin];
-        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-        self.perspectiveGestureInteractionLayer.transform = CATransform3DMakeRotation(angle, 0, 1, 0);
-        [CATransaction commit];
-        
-        self.perspectiveShadowLayer.opacity = fabs(fractionFromLeftEdge);
+        [CATransaction begin]; {
+            [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+            self.perspectiveGestureInteractionLayer.transform = CATransform3DMakeRotation(angle, 0, 1, 0);
+            self.perspectiveGestureInteractionShadowLayer.opacity = fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity;
+        } [CATransaction commit];
 
         [self statusBarNeedsAppearanceUpdate];
     }
@@ -934,15 +958,12 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         if (self.panMinimumOpenThreshold > 0 && ((self.contentViewContainer.frame.origin.x < 0 && self.contentViewContainer.frame.origin.x > -((NSInteger)self.panMinimumOpenThreshold)) ||
                                                  (self.contentViewContainer.frame.origin.x > 0 && self.contentViewContainer.frame.origin.x < self.panMinimumOpenThreshold))) {
             [self hideMenuViewController];
-            [self cleanupAnimationLayer];
         } else if (self.contentViewContainer.frame.origin.x == 0) {
             [self hideMenuViewControllerAnimated:NO];
-            [self cleanupAnimationLayer];
         } else {
             if ([recognizer velocityInView:self.view].x > 0) {
                 if (self.contentViewContainer.frame.origin.x < 0) {
                     [self hideMenuViewController];
-                    [self cleanupAnimationLayer];
                 } else {
                     if (self.leftMenuViewController) {
                         [self showLeftMenuViewController];
@@ -955,7 +976,6 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
                     }
                 } else {
                     [self hideMenuViewController];
-                    [self cleanupAnimationLayer];
                 }
             }
         }
