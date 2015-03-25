@@ -47,8 +47,6 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 @property (assign, readwrite, nonatomic) BOOL didNotifyDelegate;
 @property (strong, nonatomic) CALayer *perspectiveAnimationLayer;
 @property (strong, nonatomic) CALayer *perspectiveShadowLayer;
-@property (strong, nonatomic) CALayer *perspectiveGestureInteractionLayer;
-@property (strong, nonatomic) CALayer *perspectiveGestureInteractionShadowLayer;
 @property (strong, nonatomic) UIImage *contentViewImageSnapshot;
 
 @end
@@ -394,19 +392,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     // m34 on the transform dictates perspective depth. We make it proportional
     // to the height of the original view being transformed for best effect.
     CATransform3D transform = CATransform3DIdentity;
-
-    //If the animation has been triggered from a pan gesture, start from there
-    if(self.perspectiveGestureInteractionLayer != nil) {
-        transform = self.perspectiveGestureInteractionLayer.transform;
-        animationLayer.frame = self.perspectiveGestureInteractionLayer.frame;
-        animationLayer.bounds = self.perspectiveGestureInteractionLayer.bounds;
-        animationLayer.position = self.perspectiveGestureInteractionLayer.position;
-        animationLayer.anchorPoint = self.perspectiveGestureInteractionLayer.anchorPoint;
-        [self cleanupGestureInteractionLayers];
-    } else {
-        //transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
-    }
-    transform.m34 = -0.00032126793516507052;
+    transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
 
     self.perspectiveAnimationLayer = animationLayer;
     [contentView.layer addSublayer:self.perspectiveAnimationLayer];
@@ -416,7 +402,6 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 
     self.perspectiveShadowLayer = [self createShadowLayer];
     [self.perspectiveAnimationLayer addSublayer:self.perspectiveShadowLayer];
-
 }
 
 - (CALayer *)createShadowLayer
@@ -431,59 +416,13 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     return shadowLayer;
 }
 
-- (void)buildLayersForGestureInteraction
-{
-    UIView *contentView = self.contentViewContainer;
-    UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
-    
-    UIImage *contentViewSnapshot = nil;
-    if ([self.delegate respondsToSelector:@selector(contentSnapshotImageForSideMenu:)]) {
-        UIImage *sourceImage = [self.delegate contentSnapshotImageForSideMenu:self];
-        contentViewSnapshot = [self renderImageForAntialiasing:sourceImage withTransparentInsets:edgeInsets];
-    } else {
-        contentViewSnapshot = self.contentViewImageSnapshot;
-    }
-    CALayer *animationLayer = [CALayer layer];
-    animationLayer.frame = self.perspectiveAnimationLayer.frame;
-    animationLayer.anchorPoint = CGPointZero;
-    animationLayer.position = self.perspectiveAnimationLayer.frame.origin;
-    animationLayer.contents = (id)contentViewSnapshot.CGImage;
-    animationLayer.transform = self.perspectiveAnimationLayer.transform;
-    [animationLayer setMasksToBounds:YES];
-    animationLayer.cornerRadius = 6.0f;
-    
-    self.perspectiveGestureInteractionLayer = animationLayer;
-
-    [self cleanupAnimationLayers];
-    [self.contentViewContainer.layer addSublayer:self.perspectiveGestureInteractionLayer];
-    [self.contentViewController.view setHidden:YES];
-    
-    // m34 on the transform dictates perspective depth. We make it proportional
-    // to the height of the original view being transformed for best effect.
-    CATransform3D transform = CATransform3DIdentity;
-    transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
-    contentView.layer.sublayerTransform = transform;
-
-    self.perspectiveGestureInteractionShadowLayer = [self createShadowLayer];
-    [self.perspectiveGestureInteractionLayer addSublayer:self.perspectiveGestureInteractionShadowLayer];
-}
-
 - (void)cleanupAnimationLayers
 {
+    [self.contentViewController.view setHidden:NO];
     [self.perspectiveAnimationLayer removeFromSuperlayer];
     self.perspectiveAnimationLayer = nil;
     [self.perspectiveShadowLayer removeFromSuperlayer];
     self.perspectiveShadowLayer = nil;
-
-    [self.contentViewController.view setHidden:NO];
-}
-
--(void)cleanupGestureInteractionLayers {
-    [self.perspectiveGestureInteractionLayer removeFromSuperlayer];
-    self.perspectiveGestureInteractionLayer = nil;
-
-    [self.perspectiveGestureInteractionShadowLayer removeFromSuperlayer];
-    self.perspectiveGestureInteractionShadowLayer = nil;
 }
 
 #pragma mark - Private methods
@@ -508,7 +447,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     }
 }
 
--(void)showMenuControllerFromDirection:(RESideMenuControllerDirection)menuDirection
+-(void)showMenuControllerFromDirection:(RESideMenuControllerDirection)menuDirection withStartingTransform:(CATransform3D)transform
 {
     if(menuDirection == RESideMenuControllerDirectionLeft) {
         self.leftMenuViewController.view.hidden = NO;
@@ -520,15 +459,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     
     [self.view.window endEditing:YES];
 
-    NSNumber *rotationFromValue = @(0.0);
-    if(self.perspectiveGestureInteractionLayer != nil) {
-        // Being triggered by a gesture, keep the rotation before we destroy the layer
-        rotationFromValue = [(NSNumber *)self.perspectiveGestureInteractionLayer valueForKeyPath:@"transform.rotation.y"];
-    }
-
     [self cleanupAnimationLayers];
     [self buildLayersForAnimation];
-    [self cleanupGestureInteractionLayers];
 
     [self addContentButton];
     [self updateContentViewShadow];
@@ -592,27 +524,25 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
 
-    animation.fromValue = rotationFromValue;
+    animation.fromValue = [(NSNumber *)self.perspectiveAnimationLayer valueForKeyPath:@"transform.rotation.y"];
     
     if(menuDirection == RESideMenuControllerDirectionLeft) {
         animation.toValue = @(self.perspectiveRotationAmountRadians);
     } else {
         animation.toValue = @(-self.perspectiveRotationAmountRadians);
     }
-    
-    animation.fillMode = kCAFillModeForwards;
+
     animation.duration = self.animationDuration;
-    animation.removedOnCompletion = NO;
-    [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
+    [self.perspectiveAnimationLayer setValue:animation.toValue forKeyPath:@"transform.rotation.y"];
+    [self.perspectiveAnimationLayer addAnimation:animation forKey:@"transform"];
     
     // Perspective shadow animation
     CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
     shadowAnimation.fromValue = [(NSNumber *)self.perspectiveShadowLayer valueForKeyPath:@"opacity"];
     shadowAnimation.toValue = @(self.perspectiveShadowOpacity);
-    shadowAnimation.fillMode = kCAFillModeForwards;
     shadowAnimation.duration = self.animationDuration;
-    shadowAnimation.removedOnCompletion = NO;
-    [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:nil];
+    self.perspectiveShadowLayer.opacity = [shadowAnimation.toValue floatValue];
+    [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:@"opacity"];
     
     [self statusBarNeedsAppearanceUpdate];
 }
@@ -683,171 +613,38 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     }
 
     NSNumber *rotationFromValue = @(0.0);
-    if(self.perspectiveGestureInteractionLayer != nil) {
-        // If the hide has been triggered from a gesture, start the animation from the
-        // current animation layer rotation
-        rotationFromValue = [(NSNumber *)self.perspectiveGestureInteractionLayer valueForKeyPath:@"transform.rotation.y"];
-    } else if (isHidingRightMenu) {
+    if (isHidingRightMenu) {
             rotationFromValue = @(-self.perspectiveRotationAmountRadians);
     } else {
             rotationFromValue = @(self.perspectiveRotationAmountRadians);
     }
-    [self cleanupGestureInteractionLayers];
 
     // Reverse perspective rotation and shadow animations
     [CATransaction begin];
     {
         [CATransaction setCompletionBlock:^{
+            self.contentViewContainer.layer.transform = CATransform3DIdentity;
             [self cleanupAnimationLayers];
             self.contentViewImageSnapshot = nil;
         }];
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
-        animation.fromValue = rotationFromValue;
+        animation.fromValue = [(NSNumber *)self.perspectiveAnimationLayer valueForKeyPath:@"transform.rotation.y"];
         animation.toValue = @0.0;
-        animation.fillMode = kCAFillModeForwards;
         animation.duration = self.animationDuration;
-        animation.removedOnCompletion = NO;
-        [self.perspectiveAnimationLayer addAnimation:animation forKey:nil];
+        [self.perspectiveAnimationLayer setValue:@0.0 forKeyPath:@"transform.rotation.y"];
+        [self.perspectiveAnimationLayer addAnimation:animation forKey:@"transform"];
 
         // Perspective shadow animation
         CABasicAnimation *shadowAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        shadowAnimation.fromValue = @(self.perspectiveShadowOpacity);
+        shadowAnimation.fromValue = @(self.perspectiveShadowLayer.opacity);
         shadowAnimation.toValue = @0.0;
-        shadowAnimation.fillMode = kCAFillModeForwards;
         shadowAnimation.duration = self.animationDuration;
-        shadowAnimation.removedOnCompletion = NO;
-        [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:nil];
+        self.perspectiveShadowLayer.opacity = 0.0;
+        [self.perspectiveShadowLayer addAnimation:shadowAnimation forKey:@"opacity"];
     }
     [CATransaction commit];
 
     [self statusBarNeedsAppearanceUpdate];
-}
-
-- (void)showRightMenuViewController
-{
-    [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight];
-}
-
-- (void)showLeftMenuViewController
-{
-    [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft];
-}
-
-- (void)hideViewController:(UIViewController *)viewController
-{
-    [viewController willMoveToParentViewController:nil];
-    [viewController.view removeFromSuperview];
-    [viewController removeFromParentViewController];
-}
-
-- (void)addContentButton
-{
-    if (self.contentButton.superview)
-        return;
-
-    self.contentButton.autoresizingMask = UIViewAutoresizingNone;
-    self.contentButton.frame = self.contentViewContainer.bounds;
-    self.contentButton.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.contentViewContainer addSubview:self.contentButton];
-}
-
-- (void)statusBarNeedsAppearanceUpdate
-{
-    if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
-        [UIView animateWithDuration:0.3f animations:^{
-            [self performSelector:@selector(setNeedsStatusBarAppearanceUpdate)];
-        }];
-    }
-}
-
-- (void)updateContentViewShadow
-{
-    if (self.contentViewShadowEnabled) {
-        CALayer *layer = self.contentViewContainer.layer;
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:layer.bounds];
-        layer.shadowPath = path.CGPath;
-        layer.shadowColor = self.contentViewShadowColor.CGColor;
-        layer.shadowOffset = self.contentViewShadowOffset;
-        layer.shadowOpacity = self.contentViewShadowOpacity;
-        layer.shadowRadius = self.contentViewShadowRadius;
-    }
-}
-
-- (void)resetContentViewScale
-{
-    CGAffineTransform t = self.contentViewContainer.transform;
-    CGFloat scale = sqrt(t.a * t.a + t.c * t.c);
-    CGRect frame = self.contentViewContainer.frame;
-    self.contentViewContainer.transform = CGAffineTransformIdentity;
-    self.contentViewContainer.transform = CGAffineTransformMakeScale(scale, scale);
-    self.contentViewContainer.frame = frame;
-}
-
-#pragma mark - iOS 7 Motion Effects (Private)
-
-- (void)addMenuViewControllerMotionEffects
-{
-    if (self.parallaxEnabled) {
-        IF_IOS7_OR_GREATER(
-            for (UIMotionEffect *effect in self.menuViewContainer.motionEffects) {
-               [self.menuViewContainer removeMotionEffect:effect];
-            } UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
-            interpolationHorizontal.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
-            interpolationHorizontal.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
-
-            UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
-            interpolationVertical.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
-            interpolationVertical.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
-
-            [self.menuViewContainer addMotionEffect:interpolationHorizontal];
-            [self.menuViewContainer addMotionEffect:interpolationVertical];);
-    }
-}
-
-- (void)addContentViewControllerMotionEffects
-{
-    if (self.parallaxEnabled) {
-        IF_IOS7_OR_GREATER(
-            for (UIMotionEffect *effect in self.contentViewContainer.motionEffects) {
-               [self.contentViewContainer removeMotionEffect:effect];
-            }
-            [UIView animateWithDuration:0.2 animations:^{
-                UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
-                interpolationHorizontal.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
-                interpolationHorizontal.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
-
-                UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
-                interpolationVertical.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
-                interpolationVertical.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
-
-                [self.contentViewContainer addMotionEffect:interpolationHorizontal];
-                [self.contentViewContainer addMotionEffect:interpolationVertical];
-            }];);
-    }
-}
-
-#pragma mark - UIGestureRecognizer Delegate (Private)
-
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
-{
-    IF_IOS7_OR_GREATER(
-        if (self.interactivePopGestureRecognizerEnabled && [self.contentViewController isKindOfClass:[UINavigationController class]]) {
-           UINavigationController *navigationController = (UINavigationController *)self.contentViewController;
-           if (navigationController.viewControllers.count > 1 && navigationController.interactivePopGestureRecognizer.enabled) {
-               return NO;
-           }
-        });
-
-    if (self.panFromEdge && [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] && !self.visible) {
-        CGPoint point = [touch locationInView:gestureRecognizer.view];
-        if (point.x < 20.0 || point.x > self.view.frame.size.width - 20.0) {
-            return YES;
-        } else {
-            return NO;
-        }
-    }
-
-    return YES;
 }
 
 #pragma mark - Pan gesture recognizer (Private)
@@ -878,7 +675,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         [self.view.window endEditing:YES];
         self.didNotifyDelegate = NO;
         
-        [self buildLayersForGestureInteraction];
+        //[self buildLayersForGestureInteraction];
     }
 
     if (recognizer.state == UIGestureRecognizerStateChanged) {
@@ -975,11 +772,22 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         //3d rotation
         float fractionFromLeftEdge = self.contentViewContainer.frame.origin.x / self.view.frame.size.width;
         float angle = self.perspectiveRotationAmountRadians * fractionFromLeftEdge;
-        
-        [CATransaction begin]; {
-            [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-            self.perspectiveGestureInteractionLayer.transform = CATransform3DMakeRotation(angle, 0, 1, 0);
-            self.perspectiveGestureInteractionShadowLayer.opacity = fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity;
+        [CATransaction begin];
+        {
+            CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
+            animation.fromValue = [(NSNumber *)self.perspectiveAnimationLayer valueForKeyPath:@"transform.rotation.y"];
+            animation.toValue = @(angle);
+            animation.duration = 0;
+            [self.perspectiveAnimationLayer setValue:@(angle) forKeyPath:@"transform.rotation.y"];
+            [self.perspectiveAnimationLayer addAnimation:animation forKey:@"transform"];
+
+            CABasicAnimation *opacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+            float fromOpacityValue = self.perspectiveShadowLayer.opacity;
+            opacityAnimation.fromValue = @(fromOpacityValue);
+            opacityAnimation.toValue = @(fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity);
+            opacityAnimation.duration = 0;
+            self.perspectiveShadowLayer.opacity = fabs(fractionFromLeftEdge) * self.perspectiveShadowOpacity;
+            [self.perspectiveShadowLayer addAnimation:opacityAnimation forKey:@"opacity"];
         } [CATransaction commit];
 
         [self statusBarNeedsAppearanceUpdate];
@@ -1022,6 +830,135 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         }
     }
 }
+
+- (void)showRightMenuViewController
+{
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight withStartingTransform:CATransform3DIdentity];
+}
+
+- (void)showLeftMenuViewController
+{
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft withStartingTransform:CATransform3DIdentity];
+}
+
+- (void)hideViewController:(UIViewController *)viewController
+{
+    [viewController willMoveToParentViewController:nil];
+    [viewController.view removeFromSuperview];
+    [viewController removeFromParentViewController];
+}
+
+- (void)addContentButton
+{
+    if (self.contentButton.superview)
+        return;
+
+    self.contentButton.autoresizingMask = UIViewAutoresizingNone;
+    self.contentButton.frame = self.contentViewContainer.bounds;
+    self.contentButton.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.contentViewContainer addSubview:self.contentButton];
+}
+
+- (void)statusBarNeedsAppearanceUpdate
+{
+    if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
+        [UIView animateWithDuration:0.3f animations:^{
+            [self performSelector:@selector(setNeedsStatusBarAppearanceUpdate)];
+        }];
+    }
+}
+
+- (void)updateContentViewShadow
+{
+    if (self.contentViewShadowEnabled) {
+        CALayer *layer = self.contentViewContainer.layer;
+        UIBezierPath *path = [UIBezierPath bezierPathWithRect:layer.bounds];
+        layer.shadowPath = path.CGPath;
+        layer.shadowColor = self.contentViewShadowColor.CGColor;
+        layer.shadowOffset = self.contentViewShadowOffset;
+        layer.shadowOpacity = self.contentViewShadowOpacity;
+        layer.shadowRadius = self.contentViewShadowRadius;
+    }
+}
+
+- (void)resetContentViewScale
+{
+    CGAffineTransform t = self.contentViewContainer.transform;
+    CGFloat scale = sqrt(t.a * t.a + t.c * t.c);
+    CGRect frame = self.contentViewContainer.frame;
+    self.contentViewContainer.transform = CGAffineTransformIdentity;
+    self.contentViewContainer.transform = CGAffineTransformMakeScale(scale, scale);
+    self.contentViewContainer.frame = frame;
+}
+
+#pragma mark - iOS 7 Motion Effects (Private)
+
+- (void)addMenuViewControllerMotionEffects
+{
+    if (self.parallaxEnabled) {
+        IF_IOS7_OR_GREATER(
+                           for (UIMotionEffect *effect in self.menuViewContainer.motionEffects) {
+                               [self.menuViewContainer removeMotionEffect:effect];
+                           } UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+                           interpolationHorizontal.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
+                           interpolationHorizontal.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
+
+                           UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+                           interpolationVertical.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
+                           interpolationVertical.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
+
+                           [self.menuViewContainer addMotionEffect:interpolationHorizontal];
+                           [self.menuViewContainer addMotionEffect:interpolationVertical];);
+    }
+}
+
+- (void)addContentViewControllerMotionEffects
+{
+    if (self.parallaxEnabled) {
+        IF_IOS7_OR_GREATER(
+                           for (UIMotionEffect *effect in self.contentViewContainer.motionEffects) {
+                               [self.contentViewContainer removeMotionEffect:effect];
+                           }
+                           [UIView animateWithDuration:0.2 animations:^{
+            UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+            interpolationHorizontal.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
+            interpolationHorizontal.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
+
+            UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+            interpolationVertical.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
+            interpolationVertical.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
+
+            [self.contentViewContainer addMotionEffect:interpolationHorizontal];
+            [self.contentViewContainer addMotionEffect:interpolationVertical];
+        }];);
+    }
+}
+
+#pragma mark - UIGestureRecognizer Delegate (Private)
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    IF_IOS7_OR_GREATER(
+                       if (self.interactivePopGestureRecognizerEnabled && [self.contentViewController isKindOfClass:[UINavigationController class]]) {
+                           UINavigationController *navigationController = (UINavigationController *)self.contentViewController;
+                           if (navigationController.viewControllers.count > 1 && navigationController.interactivePopGestureRecognizer.enabled) {
+                               return NO;
+                           }
+                       });
+
+    if (self.panFromEdge && [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] && !self.visible) {
+        CGPoint point = [touch locationInView:gestureRecognizer.view];
+        if (point.x < 20.0 || point.x > self.view.frame.size.width - 20.0) {
+            return YES;
+        } else {
+            return NO;
+        }
+    }
+    
+    return YES;
+}
+
+
 
 #pragma mark - Setters
 
