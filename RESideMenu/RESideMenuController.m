@@ -713,18 +713,18 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 {
     if (self.parallaxEnabled) {
         IF_IOS7_OR_GREATER(
-                           for (UIMotionEffect *effect in self.menuViewContainer.motionEffects) {
-                               [self.menuViewContainer removeMotionEffect:effect];
-                           } UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
-                           interpolationHorizontal.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
-                           interpolationHorizontal.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
+            for (UIMotionEffect *effect in self.menuViewContainer.motionEffects) {
+               [self.menuViewContainer removeMotionEffect:effect];
+            } UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+            interpolationHorizontal.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
+            interpolationHorizontal.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
 
-                           UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
-                           interpolationVertical.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
-                           interpolationVertical.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
+            UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+            interpolationVertical.minimumRelativeValue = @(self.parallaxMenuMinimumRelativeValue);
+            interpolationVertical.maximumRelativeValue = @(self.parallaxMenuMaximumRelativeValue);
 
-                           [self.menuViewContainer addMotionEffect:interpolationHorizontal];
-                           [self.menuViewContainer addMotionEffect:interpolationVertical];);
+            [self.menuViewContainer addMotionEffect:interpolationHorizontal];
+            [self.menuViewContainer addMotionEffect:interpolationVertical];);
     }
 }
 
@@ -732,21 +732,22 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 {
     if (self.parallaxEnabled) {
         IF_IOS7_OR_GREATER(
-                           for (UIMotionEffect *effect in self.contentViewContainer.motionEffects) {
-                               [self.contentViewContainer removeMotionEffect:effect];
-                           }
-                           [UIView animateWithDuration:0.2 animations:^{
-            UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
-            interpolationHorizontal.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
-            interpolationHorizontal.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
+            for (UIMotionEffect *effect in self.contentViewContainer.motionEffects) {
+               [self.contentViewContainer removeMotionEffect:effect];
+            }
+            [UIView animateWithDuration:0.2 animations:^{
+                UIInterpolatingMotionEffect *interpolationHorizontal = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+                interpolationHorizontal.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
+                interpolationHorizontal.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
 
-            UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
-            interpolationVertical.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
-            interpolationVertical.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
+                UIInterpolatingMotionEffect *interpolationVertical = [[UIInterpolatingMotionEffect alloc] initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+                interpolationVertical.minimumRelativeValue = @(self.parallaxContentMinimumRelativeValue);
+                interpolationVertical.maximumRelativeValue = @(self.parallaxContentMaximumRelativeValue);
 
-            [self.contentViewContainer addMotionEffect:interpolationHorizontal];
-            [self.contentViewContainer addMotionEffect:interpolationVertical];
-        }];);
+                [self.contentViewContainer addMotionEffect:interpolationHorizontal];
+                [self.contentViewContainer addMotionEffect:interpolationVertical];
+            }];
+        );
     }
 }
 
