@@ -49,6 +49,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 @property (strong, nonatomic) CALayer *perspectiveShadowLayer;
 @property (strong, nonatomic) CALayer *perspectiveGestureInteractionLayer;
 @property (strong, nonatomic) CALayer *perspectiveGestureInteractionShadowLayer;
+@property (strong, nonatomic) UIImage *contentViewImageSnapshot;
 
 @end
 
@@ -160,6 +161,15 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 - (void)hideMenuViewController
 {
     [self hideMenuViewControllerAnimated:YES];
+}
+
+-(UIImage *)contentViewImageSnapshot {
+    if(!_contentViewImageSnapshot) {
+        UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
+        _contentViewImageSnapshot = [self renderImageFromView:self.contentViewContainer withRect:self.contentViewContainer.bounds transparentInsets:edgeInsets];
+    }
+
+    return _contentViewImageSnapshot;
 }
 
 - (void)setContentViewController:(UIViewController *)contentViewController animated:(BOOL)animated
@@ -371,7 +381,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         UIImage *sourceImage = [self.delegate contentSnapshotImageForSideMenu:self];
         contentViewSnapshot = [self renderImageForAntialiasing:sourceImage withTransparentInsets:edgeInsets];
     } else {
-        contentViewSnapshot = [self renderImageFromView:contentView withRect:contentView.bounds transparentInsets:edgeInsets];
+        contentViewSnapshot = self.contentViewImageSnapshot;
     }
     CALayer *animationLayer = [CALayer layer];
     animationLayer.frame = contentView.frame;
@@ -381,19 +391,26 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     [animationLayer setMasksToBounds:YES];
     animationLayer.cornerRadius = 6.0f;
 
-    self.perspectiveAnimationLayer = animationLayer;
-    [self.contentViewContainer.layer addSublayer:self.perspectiveAnimationLayer];
-    [self.contentViewController.view setHidden:YES];
-
     // m34 on the transform dictates perspective depth. We make it proportional
     // to the height of the original view being transformed for best effect.
     CATransform3D transform = CATransform3DIdentity;
-    transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
 
     //If the animation has been triggered from a pan gesture, start from there
     if(self.perspectiveGestureInteractionLayer != nil) {
         transform = self.perspectiveGestureInteractionLayer.transform;
+        animationLayer.frame = self.perspectiveGestureInteractionLayer.frame;
+        animationLayer.bounds = self.perspectiveGestureInteractionLayer.bounds;
+        animationLayer.position = self.perspectiveGestureInteractionLayer.position;
+        animationLayer.anchorPoint = self.perspectiveGestureInteractionLayer.anchorPoint;
+        [self cleanupGestureInteractionLayers];
+    } else {
+        //transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
     }
+    transform.m34 = -0.00032126793516507052;
+
+    self.perspectiveAnimationLayer = animationLayer;
+    [contentView.layer addSublayer:self.perspectiveAnimationLayer];
+    [self.contentViewController.view setHidden:YES];
 
     contentView.layer.sublayerTransform = transform;
 
@@ -408,7 +425,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     shadowLayer.frame = self.perspectiveAnimationLayer.frame;
     shadowLayer.startPoint = CGPointMake(0.0, 0.5);
     shadowLayer.endPoint = CGPointMake(1.0, 0.5);
-    shadowLayer.opacity = 0.5f;
+    shadowLayer.opacity = 0.0f;
 
     shadowLayer.colors = @[ (id)[UIColor clearColor].CGColor, (id)[UIColor blackColor].CGColor, (id)[UIColor blackColor].CGColor ];
     return shadowLayer;
@@ -424,7 +441,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         UIImage *sourceImage = [self.delegate contentSnapshotImageForSideMenu:self];
         contentViewSnapshot = [self renderImageForAntialiasing:sourceImage withTransparentInsets:edgeInsets];
     } else {
-        contentViewSnapshot = [self renderImageFromView:contentView withRect:contentView.bounds transparentInsets:edgeInsets];
+        contentViewSnapshot = self.contentViewImageSnapshot;
     }
     CALayer *animationLayer = [CALayer layer];
     animationLayer.frame = self.perspectiveAnimationLayer.frame;
@@ -502,9 +519,17 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     }
     
     [self.view.window endEditing:YES];
+
+    NSNumber *rotationFromValue = @(0.0);
+    if(self.perspectiveGestureInteractionLayer != nil) {
+        // Being triggered by a gesture, keep the rotation before we destroy the layer
+        rotationFromValue = [(NSNumber *)self.perspectiveGestureInteractionLayer valueForKeyPath:@"transform.rotation.y"];
+    }
+
     [self cleanupAnimationLayers];
     [self buildLayersForAnimation];
     [self cleanupGestureInteractionLayers];
+
     [self addContentButton];
     [self updateContentViewShadow];
     [self resetContentViewScale];
@@ -567,7 +592,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     // Perspective rotation animation
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
 
-    animation.fromValue = [(NSNumber *)self.perspectiveAnimationLayer valueForKeyPath:@"transform.rotation.y"];
+    animation.fromValue = rotationFromValue;
     
     if(menuDirection == RESideMenuControllerDirectionLeft) {
         animation.toValue = @(self.perspectiveRotationAmountRadians);
@@ -592,26 +617,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     [self statusBarNeedsAppearanceUpdate];
 }
 
-- (void)showRightMenuViewController
-{
-    [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight];
-}
-
-- (void)showLeftMenuViewController
-{
-    [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft];
-}
-
-- (void)hideViewController:(UIViewController *)viewController
-{
-    [viewController willMoveToParentViewController:nil];
-    [viewController.view removeFromSuperview];
-    [viewController removeFromParentViewController];
-}
-
 - (void)hideMenuViewControllerAnimated:(BOOL)animated
 {
-    [self cleanupGestureInteractionLayers];
     BOOL isHidingRightMenu = self.rightMenuVisible;
     if ([self.delegate conformsToProtocol:@protocol(RESideMenuControllerDelegate)] && [self.delegate respondsToSelector:@selector(sideMenu:willHideMenuViewController:)]) {
         [self.delegate sideMenu:self willHideMenuViewController:isHidingRightMenu ? self.rightMenuViewController : self.leftMenuViewController];
@@ -675,19 +682,27 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         completionBlock();
     }
 
-    // Reset the perspective rotation and shadow animations
+    NSNumber *rotationFromValue = @(0.0);
+    if(self.perspectiveGestureInteractionLayer != nil) {
+        // If the hide has been triggered from a gesture, start the animation from the
+        // current animation layer rotation
+        rotationFromValue = [(NSNumber *)self.perspectiveGestureInteractionLayer valueForKeyPath:@"transform.rotation.y"];
+    } else if (isHidingRightMenu) {
+            rotationFromValue = @(-self.perspectiveRotationAmountRadians);
+    } else {
+            rotationFromValue = @(self.perspectiveRotationAmountRadians);
+    }
+    [self cleanupGestureInteractionLayers];
+
+    // Reverse perspective rotation and shadow animations
     [CATransaction begin];
     {
         [CATransaction setCompletionBlock:^{
             [self cleanupAnimationLayers];
+            self.contentViewImageSnapshot = nil;
         }];
         CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
-        if (isHidingRightMenu) {
-
-            animation.fromValue = @(-self.perspectiveRotationAmountRadians);
-        } else {
-            animation.fromValue = @(self.perspectiveRotationAmountRadians);
-        }
+        animation.fromValue = rotationFromValue;
         animation.toValue = @0.0;
         animation.fillMode = kCAFillModeForwards;
         animation.duration = self.animationDuration;
@@ -706,6 +721,23 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     [CATransaction commit];
 
     [self statusBarNeedsAppearanceUpdate];
+}
+
+- (void)showRightMenuViewController
+{
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionRight];
+}
+
+- (void)showLeftMenuViewController
+{
+    [self showMenuControllerFromDirection:RESideMenuControllerDirectionLeft];
+}
+
+- (void)hideViewController:(UIViewController *)viewController
+{
+    [viewController willMoveToParentViewController:nil];
+    [viewController.view removeFromSuperview];
+    [viewController removeFromParentViewController];
 }
 
 - (void)addContentButton
@@ -955,13 +987,21 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 
     if (recognizer.state == UIGestureRecognizerStateEnded) {
         self.didNotifyDelegate = NO;
-        if (self.panMinimumOpenThreshold > 0 && ((self.contentViewContainer.frame.origin.x < 0 && self.contentViewContainer.frame.origin.x > -((NSInteger)self.panMinimumOpenThreshold)) ||
-                                                 (self.contentViewContainer.frame.origin.x > 0 && self.contentViewContainer.frame.origin.x < self.panMinimumOpenThreshold))) {
+
+
+        // Determine whether to hide the menu, or which one to transition to if not
+        if (self.panMinimumOpenThreshold > 0 && ((self.contentViewContainer.frame.origin.x < 0 \
+                                             && self.contentViewContainer.frame.origin.x > -((NSInteger)self.panMinimumOpenThreshold)) \
+                                             || (self.contentViewContainer.frame.origin.x > 0 \
+                                             && self.contentViewContainer.frame.origin.x < self.panMinimumOpenThreshold))) {
+            // Hide menu as we are near the edges or content view is offscreen
             [self hideMenuViewController];
         } else if (self.contentViewContainer.frame.origin.x == 0) {
+            // We are right on the edge
             [self hideMenuViewControllerAnimated:NO];
         } else {
             if ([recognizer velocityInView:self.view].x > 0) {
+                // Gesture is swiping right
                 if (self.contentViewContainer.frame.origin.x < 0) {
                     [self hideMenuViewController];
                 } else {
@@ -970,6 +1010,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
                     }
                 }
             } else {
+                //Gesture is swiping left
                 if (self.contentViewContainer.frame.origin.x < 20) {
                     if (self.rightMenuViewController) {
                         [self showRightMenuViewController];
