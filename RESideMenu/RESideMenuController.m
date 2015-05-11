@@ -896,7 +896,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         }
         
         //3d rotation
-        float fractionFromLeftEdge = 1 - (contentViewScale - self.contentViewScaleValue) / (1.0 - self.contentViewScaleValue);
+        float fractionFromLeftEdge = CGAffineTransformIsIdentity(self.contentViewContainer.transform) ? 0 : 1 - (contentViewScale - self.contentViewScaleValue) / (1.0 - self.contentViewScaleValue);
         float angle = self.perspectiveRotationAmountRadians * fractionFromLeftEdge;
         [CATransaction begin];
         {
