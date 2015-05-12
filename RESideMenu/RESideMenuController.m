@@ -265,6 +265,9 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     }
 
     [self updateContentViewShadow];
+    
+    [self performInitialAppearanceTransitionCallsForControllerIfRequired:self.leftMenuViewController];
+    [self performInitialAppearanceTransitionCallsForControllerIfRequired:self.rightMenuViewController];
 }
 
 - (BOOL)shouldAutomaticallyForwardAppearanceMethods
@@ -711,6 +714,21 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     self.contentViewContainer.frame = frame;
 }
 
+- (void)performInitialAppearanceTransitionCallsForControllerIfRequired:(UIViewController *)controller {
+    if (controller.childViewControllers.count > 0) {
+        [controller beginAppearanceTransition:YES animated:NO];
+        [controller endAppearanceTransition];
+        /**
+         *  Must perform the disappear appearance transition in the next runloop
+         *  otherwise iOS realises that it doesn't need to calculate anything.
+         */
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [controller beginAppearanceTransition:NO animated:NO];
+            [controller endAppearanceTransition];
+        });
+    }
+}
+
 #pragma mark - iOS 7 Motion Effects (Private)
 
 - (void)addMenuViewControllerMotionEffects
@@ -815,7 +833,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         } else {
             delta = point.x / self.view.frame.size.width;
         }
-        delta = MIN(fabsf(delta), 1.6);
+        delta = MIN(fabs(delta), 1.6);
 
         CGFloat contentViewScale = self.scaleContentView ? 1 - ((1 - self.contentViewScaleValue) * delta) : 1;
 
