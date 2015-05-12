@@ -163,7 +163,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 
 -(UIImage *)contentViewImageSnapshot {
     if (!_contentViewImageSnapshot) {
-        UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
+        UIEdgeInsets edgeInsets = UIEdgeInsetsZero;
         _contentViewImageSnapshot = [self renderImageFromView:self.contentViewContainer withRect:self.contentViewContainer.bounds transparentInsets:edgeInsets];
     }
 
@@ -372,7 +372,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
 - (void)buildLayersForAnimation
 {
     UIView *contentView = self.contentViewContainer;
-    UIEdgeInsets edgeInsets = UIEdgeInsetsMake(1, 0, 1, 0);
+    UIEdgeInsets edgeInsets = UIEdgeInsetsZero;
 
     UIImage *contentViewSnapshot = nil;
     if ([self.delegate respondsToSelector:@selector(contentSnapshotImageForSideMenu:)]) {
@@ -395,6 +395,8 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     transform.m34 = -1.0 / (contentView.bounds.size.height * 4.6666667);
 
     self.perspectiveAnimationLayer = animationLayer;
+    self.perspectiveAnimationLayer.shouldRasterize = YES;
+    self.perspectiveAnimationLayer.rasterizationScale = [UIScreen mainScreen].scale;
     [contentView.layer addSublayer:self.perspectiveAnimationLayer];
     [self.contentViewController.view setHidden:YES];
 
