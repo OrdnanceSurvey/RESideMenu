@@ -825,7 +825,7 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
         } else {
             delta = point.x / self.view.frame.size.width;
         }
-        delta = MIN(fabsf(delta), 1.6);
+        delta = MIN(fabs(delta), 1.6);
 
         CGFloat contentViewScale = self.scaleContentView ? 1 - ((1 - self.contentViewScaleValue) * delta) : 1;
 
