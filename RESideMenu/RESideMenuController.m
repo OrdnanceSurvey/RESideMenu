@@ -718,6 +718,14 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     if (controller.childViewControllers.count > 0) {
         [controller beginAppearanceTransition:YES animated:NO];
         [controller endAppearanceTransition];
+        /**
+         *  Must perform the disappear appearance transition in the next runloop
+         *  otherwise iOS relaises that it doesn't need to calculate anything.
+         */
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [controller beginAppearanceTransition:NO animated:NO];
+            [controller endAppearanceTransition];
+        });
     }
 }
 
