@@ -459,8 +459,10 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     
     [self.view.window endEditing:YES];
 
-    [self cleanupAnimationLayers];
-    [self buildLayersForAnimation];
+    if (CGAffineTransformIsIdentity(self.contentViewContainer.transform)) {
+        [self cleanupAnimationLayers];
+        [self buildLayersForAnimation];
+    }
 
     [self addContentButton];
     [self updateContentViewShadow];
