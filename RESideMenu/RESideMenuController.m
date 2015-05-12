@@ -265,6 +265,9 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     }
 
     [self updateContentViewShadow];
+    
+    [self performInitialAppearanceTransitionCallsForControllerIfRequired:self.leftMenuViewController];
+    [self performInitialAppearanceTransitionCallsForControllerIfRequired:self.rightMenuViewController];
 }
 
 - (BOOL)shouldAutomaticallyForwardAppearanceMethods
@@ -709,6 +712,13 @@ typedef NS_ENUM(NSInteger, RESideMenuControllerDirection)
     self.contentViewContainer.transform = CGAffineTransformIdentity;
     self.contentViewContainer.transform = CGAffineTransformMakeScale(scale, scale);
     self.contentViewContainer.frame = frame;
+}
+
+- (void)performInitialAppearanceTransitionCallsForControllerIfRequired:(UIViewController *)controller {
+    if (controller.childViewControllers.count > 0) {
+        [controller beginAppearanceTransition:YES animated:NO];
+        [controller endAppearanceTransition];
+    }
 }
 
 #pragma mark - iOS 7 Motion Effects (Private)
